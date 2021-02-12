@@ -161,6 +161,9 @@ Only RUNNING and QUEUED jobs will be listed
 ```
 All status of Job will be listed
 
+### <a id="contribute"></a>Requirements
+Delphix Masking Engine Version 6.0.2.0 and above. This utility executes api call which are not available in any engines below 6.0.2.0
+
 ### <a id="contribute"></a>How to Contribute
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) to understand the pull requests process.
