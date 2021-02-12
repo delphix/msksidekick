@@ -1,0 +1,48 @@
+export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
+# help
+./msksidekick --help
+
+# List engines
+./msksidekick list-engine
+
+# Add real dcenter engines
+./msksidekick add-engine -m atmskengine01 -t 64 -s 10
+./msksidekick add-engine -m atmskengine02 -t 64 -s 10
+./msksidekick add-engine -m atmskengine03 -t 64 -s 10
+
+# List engines
+./msksidekick list-engine
+
+# Generate dxtools.conf file
+./msksidekick gen-dxtools-conf --protocol http
+
+# Validate VE
+$DXTOOLKIT_PATH/dx_get_appliance -all -configfile ./dxtools.conf
+
+# Pull job list
+./msksidekick pull-joblist -m all --username admin --password xxxxxx --protocol http
+
+# Run job - simulataion
+./msksidekick run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+
+# Real run
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r
+
+# Sync Eng
+./msksidekick sync-eng --srcmskengname atmskengine01 --tgtmskengname atmskengine02 -g --username admin --password xxxxxx --protocol https --delextra
+
+# Sync Env
+./msksidekick sync-env --srcmskengname atmskengine01 --srcenvname DB2LUW --tgtmskengname atmskengine01 --tgtenvname DB2LUW --username admin --password xxxxxx
+
+# Sync Job
+./msksidekick sync-job --srcmskengname atmskengine01 --srcenvname mskdevenv --tgtmskengname atmskengine01 --tgtenvname mskdevenv --srcjobname maskjob6 --username admin --password xxxxxx
+
+# Cleanup Engine
+./msksidekick cleanup-eng --mskengname atmskengine02 --username admin --password xxxxxx
+
+# Pull job execution list from engine pool
+./msksidekick pull-currjoblist --username admin --password xxxxxx --protocol https [ Only RUNNING and QUEUED jobs will be listed ]
+
+# Pull specific job status from engine pool
+./msksidekick pull-currjoblist -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https [ All status of Job will be listed ]
