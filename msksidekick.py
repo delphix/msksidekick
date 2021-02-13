@@ -28,7 +28,7 @@
 #   Call this tool to run masking job,backup metadata, sync engines manually or via scheduler.
 #
 # ================================================================================
-VERSION = "1.1.15"
+VERSION = "2.0.0"
 
 import collections
 import os
