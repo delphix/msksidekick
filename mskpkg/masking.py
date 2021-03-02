@@ -84,7 +84,9 @@ class masking():
         if "globalobjsync" in kwargs.keys():
             self.globalobjsync = kwargs['globalobjsync']
         if "delextra" in kwargs.keys():
-            self.delextra = kwargs['delextra']                        
+            self.delextra = kwargs['delextra']
+        if "poolname" in kwargs.keys():
+            self.poolname = kwargs['poolname']
         if "protocol" in kwargs.keys():
             self.protocol = kwargs['protocol']
         else:
@@ -197,6 +199,31 @@ class masking():
         #print(unqualified_engines)
         return qualified_engines, unqualified_engines
 
+    def get_jobpool_qualified_engines(self, dict1):
+        qualified_engines = []
+        unqualified_engines = []
+        print_debug("poolname = {}".format(self.poolname))
+        for item in dict1:
+            if item['poolname'] == self.poolname:
+                qualified_engines.append(item)
+            else:
+                unqualified_engines.append(item)
+        print_debug("jobpool qualified_engines:{}".format(qualified_engines))
+        print_debug("jobpool unqualified_engines:{}".format(unqualified_engines))
+        return qualified_engines
+
+    def get_jobpool_unqualified_engines(self, dict1):
+        qualified_engines = []
+        unqualified_engines = []
+        for item in dict1:
+            if item['poolname'] == self.poolname:
+                qualified_engines.append(item)
+            else:
+                unqualified_engines.append(item)
+        print_debug("jobpool unqualified_qualified_engines:{}".format(qualified_engines))
+        print_debug("jobpool unqualified_unqualified_engines:{}".format(unqualified_engines))
+        return qualified_engines
+
     def get_max_free_mem_engine(self, dict1):
         freemem = 0
         winner_engine = {}
@@ -261,19 +288,20 @@ class masking():
         try:
             if os.path.exists(self.enginelistfile):
                 engine_list = self.create_dictobj(self.enginelistfile)
+                print_debug(engine_list)
                 for engine in engine_list:
                     if self.mskengname == engine['ip_address']:
                         print("Engine {} already exists in pool".format(self.mskengname))
                         print("Please use upd-engine OR del-engine and add-engine module")
                         exit()
                 f = open(self.enginelistfile, "a")
-                f.write("{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb))
+                f.write("{},{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb, self.poolname))
                 f.close()
             else:
-                #print("filename = {}".format(self.enginelistfile))
+                print_debug("poolname={}".format(self.poolname))
                 f = open(self.enginelistfile, "w")
-                f.write("{},{},{}\n".format("ip_address", "totalgb", "systemgb"))
-                f.write("{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb))
+                f.write("{},{},{},{}\n".format("ip_address", "totalgb", "systemgb", "poolname"))
+                f.write("{},{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb, self.poolname))
                 f.close()
             print("Engine {} successfully added to pool".format(self.mskengname))
         except Exception as e:
@@ -285,10 +313,10 @@ class masking():
         try:
             if os.path.exists(self.enginelistfile):
                 engine_list = self.create_dictobj(self.enginelistfile)
-                print('{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", "EngineName", "Total Memory(GB)", "System Memory(GB)"))
+                print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", "EngineName", "Total Memory(GB)", "System Memory(GB)", "Pool Name"))
                 for engine in engine_list:
-                    print('{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", engine['ip_address'], engine['totalgb'],
-                                                               engine['systemgb']))
+                    print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", engine['ip_address'], engine['totalgb'],
+                                                               engine['systemgb'],engine['poolname']))
                 print(" ")
             else:
                 print("No Engine found in pool")
@@ -503,7 +531,8 @@ class masking():
         for engine in engine_list:
             engine_list_dict = collections.OrderedDict(ip_address=engine['ip_address'],
                                                        totalmb=int(engine['totalgb']) * 1024,
-                                                       systemmb=int(engine['systemgb']) * 1024)
+                                                       systemmb=int(engine['systemgb']) * 1024,
+                                                       poolname=engine['poolname'])
             enginelist.append(engine_list_dict)
         print_debug("engine_list:\n{}".format(engine_list))
         print_debug("enginelist:\n{}".format(enginelist))
@@ -631,6 +660,10 @@ class masking():
         qualified_engines, unqualified_engines = self.get_unqualified_qualified_engines(jpd2)
         print_debug('qualified_engines = \n{}\n'.format(qualified_engines))
         print_debug('unqualified_engines = \n{}\n'.format(unqualified_engines))
+        jobpool_qualified_engines = self.get_jobpool_qualified_engines(qualified_engines)
+        jobpool_unqualified_engines = self.get_jobpool_unqualified_engines(unqualified_engines)
+        qualified_engines = jobpool_qualified_engines
+        unqualified_engines = jobpool_unqualified_engines
 
         if len(qualified_engines) == 0:
             redcandidate = []
