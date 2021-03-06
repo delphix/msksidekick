@@ -51,8 +51,8 @@ This command show engines available in pool
 This command helps to add engines to the pool
 ```shell
 ./msksidekick add-engine -m atmskengine01 -t 64 -s 10
-./msksidekick add-engine -m atmskengine02 -t 64 -s 10
-./msksidekick add-engine -m atmskengine03 -t 64 -s 10
+./msksidekick add-engine -m atmskengine02 -t 64 -s 10 --jobpool POOL1 
+./msksidekick add-engine -m atmskengine03 -t 64 -s 10 --jobpool POOL1 
 ```
 
 ##### List engines
@@ -105,11 +105,13 @@ e.g.
 ##### Run job - simulation
 ```shell
 ./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1
 ```
 By default this runs in simulation mode. If job need to be executed then "-r" switch need to be added to above command
 ##### Real run
 ```shell
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 -r
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 -r 
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1 -r 
 ```
 
 ##### Sync Eng

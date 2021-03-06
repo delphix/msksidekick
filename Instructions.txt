@@ -7,8 +7,8 @@ export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
 
 # Add real dcenter engines
 ./msksidekick add-engine -m atmskengine01 -t 64 -s 10
-./msksidekick add-engine -m atmskengine02 -t 64 -s 10
-./msksidekick add-engine -m atmskengine03 -t 64 -s 10
+./msksidekick add-engine -m atmskengine02 -t 64 -s 10 --poolname POOL1
+./msksidekick add-engine -m atmskengine03 -t 64 -s 10 --poolname POOL1
 
 # List engines
 ./msksidekick list-engine
@@ -25,6 +25,7 @@ $DXTOOLKIT_PATH/dx_get_appliance -all -configfile ./dxtools.conf
 # Run job - simulataion
 ./msksidekick run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
 ./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH --poolname POOL1
 
 # Real run
 ./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r

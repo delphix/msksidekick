@@ -11,7 +11,7 @@
 #       not use this file except in compliance with the License.
 #
 #       You may obtain a copy of the License at
-#     
+#
 #               http://www.apache.org/licenses/LICENSE-2.0
 #
 #       Unless required by applicable law or agreed to in writing, software
@@ -20,7 +20,7 @@
 #
 #       See the License for the specific language governing permissions and
 #       limitations under the License.
-#     
+#
 #       Copyright (c) 2020 by Delphix.  All rights reserved.
 #
 # Description:
@@ -28,7 +28,7 @@
 #   Call this tool to run masking job,backup metadata, sync engines manually or via scheduler.
 #
 # ================================================================================
-VERSION = "2.0.0"
+
 
 import collections
 import os
@@ -37,20 +37,22 @@ import click
 
 import mskpkg.globals as globals
 from mskpkg.DxLogging import print_debug
-from mskpkg.virtualization import virtualization
-from mskpkg.masking import masking
 from mskpkg.banner import banner
+from mskpkg.masking import masking
+from mskpkg.virtualization import virtualization
 
+VERSION = "2.0.1"
+output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
-    output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
-    #print("output_dir = {}".format(output_dir))
+    # print("output_dir = {}".format(output_dir))
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
     if not os.path.exists(output_dir):
-        os.makedirs(output_dir)        
+        os.makedirs(output_dir)
 except Exception as e:
     print("Unable to create {} directory in current folder".format(output_dir))
     print(str(e))
     raise
+
 
 class Config(object):
     def __init__(self):
@@ -76,15 +78,15 @@ def print_banner():
     mybannero = bannertext.banner_sl_box_open(text=" ")
     mybannera = bannertext.banner_sl_box_addline(text="Masking Sidekick - {}".format(VERSION))
     mybannerc = bannertext.banner_sl_box_close()
-    #print(mybannero)
+    # print(mybannero)
     print(" ")
     print(mybannera)
     print(mybannerc)
 
+
 # Common Options
 # @click.group()
 @click.group(cls=OrderedGroup)
-
 @click.option('--verbose', '-v', is_flag=True)
 @click.option('--debug', '-d', is_flag=True)
 @pass_config
@@ -93,6 +95,7 @@ def cli(config, verbose, debug):
         config.verbose = verbose
     if debug:
         config.debug = debug
+
 
 # gen-dxtoolsconf
 @cli.command()
@@ -105,6 +108,7 @@ def version(config):
     print_banner()
     click.echo('Script Version : {}'.format(VERSION))
 
+
 # add_engine
 @cli.command()
 @click.option('--mskengname', '-m', default='', prompt='Enter Masking Engine name',
@@ -113,14 +117,14 @@ def version(config):
               help='Total memory in GB for masking engine')
 @click.option('--systemgb', '-s', default='', prompt='Enter system memory in GB for masking engine',
               help='System memory in GB for masking engine')
-# @click.option('--mskaiagntuser','-u', default='', prompt='Enter Masking AI Agent Username',
-#           help='Masking AI Agent Username for masking engine')
+@click.option('--poolname','-p', default='Default', prompt='Enter Pool Name for Engine',
+              help='Pool name to assign engine')
 # @click.option('--enabled','-e', default='Y', prompt='Enable Masking Engine for pooling',
 #            type=click.Choice(['Y', 'N'], case_sensitive=True),
 #            help='Add Engine to Pool')
 @pass_config
 # def add_engine(config, mskengname, totalgb, systemgb, mskaiagntuser, enabled):
-def add_engine(config, mskengname, totalgb, systemgb):
+def add_engine(config, mskengname, totalgb, systemgb, poolname):
     """ This module will add engine to pool"""
 
     print_banner()
@@ -134,7 +138,7 @@ def add_engine(config, mskengname, totalgb, systemgb):
     globals.arguments['--debug'] = config.debug
     globals.arguments['--config'] = './dxtools.conf'
 
-    mskai = masking(config, mskengname=mskengname, totalgb=totalgb, systemgb=systemgb)
+    mskai = masking(config, mskengname=mskengname, totalgb=totalgb, systemgb=systemgb, poolname=poolname)
     mskai.add_engine()
 
 
@@ -169,7 +173,7 @@ def del_engine(config, mskengname):
 @click.option('--mskengname', '-m', default='all', prompt='Enter Masking Engine name',
               help='Masking Engine name')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -190,6 +194,7 @@ def pull_joblist(config, mskengname, username, password, protocol):
     mskai = masking(config, mskengname=mskengname, username=username, password=password, protocol=protocol)
     mskai.pull_joblist()
 
+
 # pull_currjoblist
 @cli.command()
 @click.option('--jobname', '-j', default='',
@@ -197,7 +202,7 @@ def pull_joblist(config, mskengname, username, password, protocol):
 @click.option('--envname', '-e', default='mskenv',
               help='Environment Name of Masking Job')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p', default='mskenv',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -218,12 +223,14 @@ def pull_currjoblist(config, jobname, envname, username, password, protocol):
         print_debug('protocol      = {0}'.format(protocol))
 
     try:
-        mskai = masking(config, jobname=jobname, envname=envname, username=username, password=password, protocol=protocol)
+        mskai = masking(config, jobname=jobname, envname=envname, username=username, password=password,
+                        protocol=protocol)
         mskai.pull_currjoblist()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
+
 
 # gen-dxtoolsconf
 @cli.command()
@@ -238,6 +245,7 @@ def gen_dxtools_conf(config, protocol):
     mskai = masking(config, protocol=protocol)
     mskai.gen_dxtools_conf()
 
+
 # syncjob
 @cli.command()
 @click.option('--srcmskengname', default='', prompt='Enter Source Masking Engine name',
@@ -245,21 +253,21 @@ def gen_dxtools_conf(config, protocol):
 @click.option('--srcenvname', default='', prompt='Enter Source Masking Engine env name',
               help='Source Masking Engine Environment name')
 @click.option('--srcjobname', default='', prompt='Enter Source Masking Engine job name',
-              help='Source Masking Engine Job name')              
+              help='Source Masking Engine Job name')
 @click.option('--tgtmskengname', default='', prompt='Enter Target Masking Engine name',
               help='Target Masking Engine name')
 @click.option('--tgtenvname', default='', prompt='Enter Target Masking Engine env name',
               help='Target Masking Engine Environment name')
-@click.option('--globalobjsync','-g', default=False, is_flag=True, prompt='Sync global Objects',
-              help='Sync global Objects')              
+@click.option('--globalobjsync', '-g', default=False, is_flag=True, prompt='Sync global Objects',
+              help='Sync global Objects')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
-
 @pass_config
-def sync_job(config, srcmskengname, srcenvname, srcjobname, tgtmskengname, tgtenvname, globalobjsync, username, password, protocol):
+def sync_job(config, srcmskengname, srcenvname, srcjobname, tgtmskengname, tgtenvname, globalobjsync, username,
+             password, protocol):
     """ This module will sync particular job between 2 engines"""
 
     print_banner()
@@ -273,12 +281,14 @@ def sync_job(config, srcmskengname, srcenvname, srcjobname, tgtmskengname, tgten
         print_debug('srcenvname    = {0}'.format(srcenvname))
         print_debug('srcjobname    = {0}'.format(srcjobname))
         print_debug('tgtmskengname = {0}'.format(tgtmskengname))
-        print_debug('globalobjsync = {0}'.format(globalobjsync))          
+        print_debug('globalobjsync = {0}'.format(globalobjsync))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
 
     try:
-        mskai = masking(config, srcmskengname=srcmskengname, srcenvname=srcenvname, srcjobname=srcjobname, tgtmskengname=tgtmskengname, tgtenvname=tgtenvname, globalobjsync=globalobjsync, username=username, password=password, protocol=protocol)
+        mskai = masking(config, srcmskengname=srcmskengname, srcenvname=srcenvname, srcjobname=srcjobname,
+                        tgtmskengname=tgtmskengname, tgtenvname=tgtenvname, globalobjsync=globalobjsync,
+                        username=username, password=password, protocol=protocol)
         mskai.sync_job()
     except Exception as e:
         print("Error in MSK module")
@@ -296,10 +306,10 @@ def sync_job(config, srcmskengname, srcenvname, srcjobname, tgtmskengname, tgten
               help='Target Masking Engine name')
 @click.option('--tgtenvname', default='', prompt='Enter Target Masking Engine env name',
               help='Target Masking Engine Environment name')
-@click.option('--globalobjsync','-g', default=False, is_flag=True, prompt='Sync global Objects',
-              help='Sync global Objects')                       
+@click.option('--globalobjsync', '-g', default=False, is_flag=True, prompt='Sync global Objects',
+              help='Sync global Objects')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -317,18 +327,21 @@ def sync_env(config, srcmskengname, srcenvname, tgtmskengname, tgtenvname, globa
         print_debug('srcmskengname = {0}'.format(srcmskengname))
         print_debug('srcenvname    = {0}'.format(srcenvname))
         print_debug('tgtmskengname = {0}'.format(tgtmskengname))
-        print_debug('tgtenvname    = {0}'.format(tgtenvname))        
-        print_debug('globalobjsync = {0}'.format(globalobjsync))        
+        print_debug('tgtenvname    = {0}'.format(tgtenvname))
+        print_debug('globalobjsync = {0}'.format(globalobjsync))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
 
     try:
-        mskai = masking(config, srcmskengname=srcmskengname, srcenvname=srcenvname, tgtmskengname=tgtmskengname, tgtenvname=tgtenvname, globalobjsync=globalobjsync, username=username, password=password, protocol=protocol)
+        mskai = masking(config, srcmskengname=srcmskengname, srcenvname=srcenvname, tgtmskengname=tgtmskengname,
+                        tgtenvname=tgtenvname, globalobjsync=globalobjsync, username=username, password=password,
+                        protocol=protocol)
         mskai.sync_env()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
+
 
 # synceng
 @cli.command()
@@ -336,16 +349,16 @@ def sync_env(config, srcmskengname, srcenvname, tgtmskengname, tgtenvname, globa
               help='Source Masking Engine name')
 @click.option('--tgtmskengname', default='', prompt='Enter Target Masking Engine name',
               help='Target Masking Engine name')
-@click.option('--globalobjsync','-g', default=True, is_flag=True, prompt='Sync global Objects',
-              help='Sync global Objects')                       
+@click.option('--globalobjsync', '-g', default=True, is_flag=True, prompt='Sync global Objects',
+              help='Sync global Objects')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
 @click.option('--delextra', default=False, is_flag=True, help='Delete extra objects from target')
 @pass_config
-def sync_eng(config, srcmskengname, tgtmskengname, globalobjsync, username, password, protocol,delextra):
+def sync_eng(config, srcmskengname, tgtmskengname, globalobjsync, username, password, protocol, delextra):
     """ This module will complete sync 2 engines"""
 
     print_banner()
@@ -356,19 +369,21 @@ def sync_eng(config, srcmskengname, tgtmskengname, globalobjsync, username, pass
     if config.verbose:
         print_debug('Verbose mode enabled')
         print_debug('srcmskengname = {0}'.format(srcmskengname))
-        print_debug('tgtmskengname = {0}'.format(tgtmskengname))    
-        print_debug('globalobjsync = {0}'.format(globalobjsync))        
+        print_debug('tgtmskengname = {0}'.format(tgtmskengname))
+        print_debug('globalobjsync = {0}'.format(globalobjsync))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
         print_debug('delextra      = {0}'.format(delextra))
     globalobjsync = True
     try:
-        mskai = masking(config, srcmskengname=srcmskengname, tgtmskengname=tgtmskengname, globalobjsync=globalobjsync, username=username, password=password, protocol=protocol, delextra=delextra)
+        mskai = masking(config, srcmskengname=srcmskengname, tgtmskengname=tgtmskengname, globalobjsync=globalobjsync,
+                        username=username, password=password, protocol=protocol, delextra=delextra)
         mskai.sync_eng()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
+
 
 # sync_globalobj
 @cli.command()
@@ -376,10 +391,10 @@ def sync_eng(config, srcmskengname, tgtmskengname, globalobjsync, username, pass
               help='Source Masking Engine name')
 @click.option('--tgtmskengname', default='', prompt='Enter Target Masking Engine name',
               help='Target Masking Engine name')
-@click.option('--globalobjsync','-g', default=False, is_flag=True, prompt='Sync global Objects',
-              help='Sync global Objects')                       
+@click.option('--globalobjsync', '-g', default=False, is_flag=True, prompt='Sync global Objects',
+              help='Sync global Objects')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -395,25 +410,27 @@ def sync_globalobj(config, srcmskengname, tgtmskengname, globalobjsync, username
     if config.verbose:
         print_debug('Verbose mode enabled')
         print_debug('srcmskengname = {0}'.format(srcmskengname))
-        print_debug('tgtmskengname = {0}'.format(tgtmskengname))    
-        print_debug('globalobjsync = {0}'.format(globalobjsync))        
+        print_debug('tgtmskengname = {0}'.format(tgtmskengname))
+        print_debug('globalobjsync = {0}'.format(globalobjsync))
         print_debug('username      = {0}'.format(username))
-        print_debug('protocol      = {0}'.format(protocol))        
+        print_debug('protocol      = {0}'.format(protocol))
 
     try:
-        mskai = masking(config, srcmskengname=srcmskengname, tgtmskengname=tgtmskengname, globalobjsync=globalobjsync, username=username, password=password, protocol=protocol)
+        mskai = masking(config, srcmskengname=srcmskengname, tgtmskengname=tgtmskengname, globalobjsync=globalobjsync,
+                        username=username, password=password, protocol=protocol)
         mskai.sync_globalobj()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
 
+
 # cleanup-eng
 @cli.command()
 @click.option('--mskengname', default='', prompt='Enter Source Masking Engine name',
-              help='Source Masking Engine name')                    
+              help='Source Masking Engine name')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -428,7 +445,7 @@ def cleanup_eng(config, mskengname, username, password, protocol):
 
     if config.verbose:
         print_debug('Verbose mode enabled')
-        print_debug('mskengname = {0}'.format(mskengname))      
+        print_debug('mskengname = {0}'.format(mskengname))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
 
@@ -440,10 +457,11 @@ def cleanup_eng(config, mskengname, username, password, protocol):
         print(str(e))
         return
 
+
 # runjob
 @cli.command()
 @click.option('--jobname', '-j', default='', prompt='Enter Masking Job Name',
-              help='Masking Job name from Masking Engine')         
+              help='Masking Job name from Masking Engine')
 @click.option('--envname', '-e', default='mskenv', prompt='Enter Environment Name of Masking Job',
               help='Environment Name of Masking Job')
 @click.option('--run', '-r', default=False, is_flag=True,
@@ -451,14 +469,15 @@ def cleanup_eng(config, mskengname, username, password, protocol):
 @click.option('--mock', '-m', default=False, is_flag=True,
               help='Mock run - just for demos')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')              
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
 @click.option('--dxtoolkit_path', default='', prompt='Enter dxtoolkit path',
-              help='dxtoolkit full path')                                 
+              help='dxtoolkit full path')
+@click.option('--poolname','-p', default='Default', help='Pool name to assign engine')
 @pass_config
-def run_job(config, jobname, envname, run, mock, username, password, protocol,dxtoolkit_path):
+def run_job(config, jobname, envname, run, mock, username, password, protocol, dxtoolkit_path, poolname):
     """ This module will execute masking job on best candidate engine"""
 
     print_banner()
@@ -468,13 +487,14 @@ def run_job(config, jobname, envname, run, mock, username, password, protocol,dx
 
     if config.verbose:
         print_debug('Verbose mode enabled')
-        print_debug('jobname  = {0}'.format(jobname))
-        print_debug('envname  = {0}'.format(envname))
-        print_debug('run      = {0}'.format(run))
-        print_debug('mock     = {0}'.format(mock))
-        print_debug('username = {0}'.format(username))
-        print_debug('protocol      = {0}'.format(protocol))
+        print_debug('jobname        = {0}'.format(jobname))
+        print_debug('envname        = {0}'.format(envname))
+        print_debug('run            = {0}'.format(run))
+        print_debug('mock           = {0}'.format(mock))
+        print_debug('username       = {0}'.format(username))
+        print_debug('protocol       = {0}'.format(protocol))
         print_debug('dxtoolkit_path = {0}'.format(dxtoolkit_path))
+        print_debug('poolname       = {0}'.format(poolname))
 
     globals.arguments['--debug'] = config.debug
     globals.arguments['--config'] = './dxtools.conf'
@@ -488,13 +508,15 @@ def run_job(config, jobname, envname, run, mock, username, password, protocol,dx
     globals.arguments['--dxtoolkit_path'] = dxtoolkit_path
 
     try:
-        mskai = masking(config, jobname=jobname, envname=envname, run=run, mock=mock, username=username, password=password, protocol=protocol)
+        mskai = masking(config, jobname=jobname, envname=envname, run=run, mock=mock, username=username,
+                        password=password, protocol=protocol, poolname=poolname)
         if not mock:
             mskai.pull_jobexeclist()
         chk_status = mskai.chk_job_running()
-        #print("chk_status={}".format(chk_status))
+        # print("chk_status={}".format(chk_status))
         if chk_status != 0:
-            print(" Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname, chk_status))
+            print(" Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname,
+                                                                                                 chk_status))
             return
     except Exception as e:
         print("Error in MSK module")
@@ -505,37 +527,40 @@ def run_job(config, jobname, envname, run, mock, username, password, protocol,dx
         print_debug(" ")
         print_debug(" ")
         print_debug(" ")
-        print_debug(" ")         
+        print_debug(" ")
         print_debug("Capture CPU usage data...")
         scriptdir = os.path.dirname(os.path.abspath(__file__))
         outputdir = os.path.join(scriptdir, 'output')
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
-        aive = virtualization(config, config_file_path='./dxtools.conf', scriptdir=scriptdir, outputdir=outputdir, protocol=protocol, dxtoolkit_path=dxtoolkit_path)
+        aive = virtualization(config, config_file_path='./dxtools.conf', scriptdir=scriptdir, outputdir=outputdir,
+                              protocol=protocol, dxtoolkit_path=dxtoolkit_path)
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
         aive.gen_cpu_file()
         print_debug("Capture CPU usage data : done")
         print_debug(" ")
         print_debug(" ")
         print_debug(" ")
-        print_debug(" ")    
+        print_debug(" ")
     except:
         print("Error in VE module")
         return
 
     try:
-        mskai = masking(config, jobname=jobname, envname=envname, run=run, mock=mock, username=username, password=password, protocol=protocol)
+        mskai = masking(config, jobname=jobname, envname=envname, run=run, mock=mock, username=username,
+                        password=password, protocol=protocol, poolname=poolname)
         mskai.run_job()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
 
+
 # test-connectors
 @cli.command()
 @click.option('--mskengname', default='', prompt='Enter Source Masking Engine name',
               help='Source Masking Engine name')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -562,10 +587,11 @@ def test_connectors(config, mskengname, username, password, protocol):
         print(str(e))
         return
 
+
 # list_green_eng
-@cli.command()     
+@cli.command()
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')              
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--mock', '-m', default=False, is_flag=True,
@@ -574,7 +600,7 @@ def test_connectors(config, mskengname, username, password, protocol):
 @click.option('--dxtoolkit_path', default='', prompt='Enter dxtoolkit path',
               help='dxtoolkit full path')
 @pass_config
-def list_eng_usage(config, username, password, protocol,mock,dxtoolkit_path):
+def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
     """ This module will find green engines"""
 
     print_banner()
@@ -616,7 +642,8 @@ def list_eng_usage(config, username, password, protocol,mock,dxtoolkit_path):
         scriptdir = os.path.dirname(os.path.abspath(__file__))
         outputdir = os.path.join(scriptdir, 'output')
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
-        aive = virtualization(config, config_file_path='./dxtools.conf', scriptdir=scriptdir, outputdir=outputdir, protocol=protocol, dxtoolkit_path=dxtoolkit_path)
+        aive = virtualization(config, config_file_path='./dxtools.conf', scriptdir=scriptdir, outputdir=outputdir,
+                              protocol=protocol, dxtoolkit_path=dxtoolkit_path)
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
         aive.gen_cpu_file()
         print_debug("Capture CPU usage data : done")
@@ -633,14 +660,15 @@ def list_eng_usage(config, username, password, protocol,mock,dxtoolkit_path):
         print(str(e))
         return
 
+
 # offline_backup_eng
 @cli.command()
 @click.option('--mskengname', default='', prompt='Enter Masking Engine name',
               help='Masking Engine name')
 @click.option('--backup_dir', default='', prompt='Enter Backup Path',
-              help='Backup Path')                                  
+              help='Backup Path')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -655,27 +683,29 @@ def offline_backup_eng(config, mskengname, username, password, protocol, backup_
 
     if config.verbose:
         print_debug('Verbose mode enabled')
-        print_debug('mskengname    = {0}'.format(mskengname))      
+        print_debug('mskengname    = {0}'.format(mskengname))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
         print_debug('backup_dir    = {0}'.format(backup_dir))
 
     try:
-        mskai = masking(config, mskengname=mskengname, username=username, password=password, protocol=protocol, backup_dir=backup_dir)
+        mskai = masking(config, mskengname=mskengname, username=username, password=password, protocol=protocol,
+                        backup_dir=backup_dir)
         mskai.offline_backup_eng()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
 
+
 # offline_restore_eng
 @cli.command()
 @click.option('--mskengname', default='', prompt='Enter Masking Engine name',
               help='Masking Engine name')
 @click.option('--backup_dir', default='', prompt='Enter Backup Path',
-              help='Backup Path')                                  
+              help='Backup Path')
 @click.option('--username', '-u', prompt='Enter Masking username',
-                       help='Masking mskaiagnt username to connect masking engines')
+              help='Masking mskaiagnt username to connect masking engines')
 @click.password_option('--password', '-p',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
@@ -690,18 +720,20 @@ def offline_restore_eng(config, mskengname, username, password, protocol, backup
 
     if config.verbose:
         print_debug('Verbose mode enabled')
-        print_debug('mskengname    = {0}'.format(mskengname))      
+        print_debug('mskengname    = {0}'.format(mskengname))
         print_debug('username      = {0}'.format(username))
         print_debug('protocol      = {0}'.format(protocol))
         print_debug('backup_dir    = {0}'.format(backup_dir))
 
     try:
-        mskai = masking(config, mskengname=mskengname, username=username, password=password, protocol=protocol, backup_dir=backup_dir)
+        mskai = masking(config, mskengname=mskengname, username=username, password=password, protocol=protocol,
+                        backup_dir=backup_dir)
         mskai.offline_restore_eng()
     except Exception as e:
         print("Error in MSK module")
         print(str(e))
         return
+
 
 if __name__ == "__main__":
     cli()

@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['msksidekick.py'],
+a = Analysis(['/Users/ajay.thotangare/github/msksidekick/msksidekick.py'],
              pathex=['/Users/ajay.thotangare/github/msksidekick'],
              binaries=[],
              datas=[],
