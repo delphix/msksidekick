@@ -35,3 +35,7 @@ venv
 mskpkg/__pycache__
 .DS_Store
 *.DS_Store
+msksidekick.spec
+msksidekick_workflow.pptx
+msksidekick.code-workspace
+msksidekick.spec

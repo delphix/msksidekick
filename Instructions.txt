@@ -1,4 +1,5 @@
 export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
+export MSKADMINPWD=delphix
 # help
 ./msksidekick --help
 
@@ -23,27 +24,27 @@ $DXTOOLKIT_PATH/dx_get_appliance -all -configfile ./dxtools.conf
 ./msksidekick pull-joblist -m all --username admin --password xxxxxx --protocol http
 
 # Run job - simulataion
-./msksidekick run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH --poolname POOL1
+./msksidekick run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH --poolname POOL1
 
 # Real run
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r
 
 # Sync Eng
-./msksidekick sync-eng --srcmskengname atmskengine01 --tgtmskengname atmskengine02 -g --username admin --password xxxxxx --protocol https --delextra
+./msksidekick sync-eng --srcmskengname atmskengine01 --tgtmskengname atmskengine02 -g --username admin --password $MSKADMINPWD --protocol https --delextra
 
 # Sync Env
-./msksidekick sync-env --srcmskengname atmskengine01 --srcenvname DB2LUW --tgtmskengname atmskengine01 --tgtenvname DB2LUW --username admin --password xxxxxx
+./msksidekick sync-env --srcmskengname atmskengine01 --srcenvname DB2LUW --tgtmskengname atmskengine01 --tgtenvname DB2LUW --username admin --password $MSKADMINPWD
 
 # Sync Job
-./msksidekick sync-job --srcmskengname atmskengine01 --srcenvname mskdevenv --tgtmskengname atmskengine01 --tgtenvname mskdevenv --srcjobname maskjob6 --username admin --password xxxxxx
+./msksidekick sync-job --srcmskengname atmskengine01 --srcenvname mskdevenv --tgtmskengname atmskengine01 --tgtenvname mskdevenv --srcjobname mskjob6 --username admin --password $MSKADMINPWD
 
 # Cleanup Engine
-./msksidekick cleanup-eng --mskengname atmskengine02 --username admin --password xxxxxx
+./msksidekick cleanup-eng --mskengname atmskengine02 --username admin --password $MSKADMINPWD
 
 # Pull job execution list from engine pool
-./msksidekick pull-currjoblist --username admin --password xxxxxx --protocol https [ Only RUNNING and QUEUED jobs will be listed ]
+./msksidekick pull-currjoblist --username admin --password $MSKADMINPWD --protocol https [ Only RUNNING and QUEUED jobs will be listed ]
 
 # Pull specific job status from engine pool
-./msksidekick pull-currjoblist -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https [ All status of Job will be listed ]
+./msksidekick pull-currjoblist -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https [ All status of Job will be listed ]

@@ -195,34 +195,46 @@ class masking():
                 qualified_engines.append(item)
             else:
                 unqualified_engines.append(item)
-        #print(qualified_engines)
-        #print(unqualified_engines)
+        print_debug("qualified_engines:{}".format(qualified_engines))
+        print_debug("unqualified_engines:{}".format(unqualified_engines))
         return qualified_engines, unqualified_engines
 
     def get_jobpool_qualified_engines(self, dict1):
-        qualified_engines = []
-        unqualified_engines = []
+        poolqualified_engines = []
+        poolunqualified_engines = []
         print_debug("poolname = {}".format(self.poolname))
         for item in dict1:
             if item['poolname'] == self.poolname:
-                qualified_engines.append(item)
+                poolqualified_engines.append(item)
+                print_debug("Pool matched for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
             else:
-                unqualified_engines.append(item)
-        print_debug("jobpool qualified_engines:{}".format(qualified_engines))
-        print_debug("jobpool unqualified_engines:{}".format(unqualified_engines))
-        return qualified_engines
+                poolunqualified_engines.append(item)
+                print_debug("Pool did not match for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
+        print_debug("jobpool qualified_engines:{}".format(poolqualified_engines))
+        print_debug("jobpool unqualified_engines:{}".format(poolunqualified_engines))
+        return poolqualified_engines
 
     def get_jobpool_unqualified_engines(self, dict1):
-        qualified_engines = []
-        unqualified_engines = []
+        upoolqualified_engines = []
+        upoolunqualified_engines = []
         for item in dict1:
             if item['poolname'] == self.poolname:
-                qualified_engines.append(item)
+                upoolqualified_engines.append(item)
+                print_debug("Pool matched for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
             else:
-                unqualified_engines.append(item)
-        print_debug("jobpool unqualified_qualified_engines:{}".format(qualified_engines))
-        print_debug("jobpool unqualified_unqualified_engines:{}".format(unqualified_engines))
-        return qualified_engines
+                upoolunqualified_engines.append(item)
+                print_debug("Pool did not match for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
+        print_debug("jobpool unqualified_qualified_engines:{}".format(upoolqualified_engines))
+        print_debug("jobpool unqualified_unqualified_engines:{}".format(upoolunqualified_engines))
+        return upoolqualified_engines
 
     def get_max_free_mem_engine(self, dict1):
         freemem = 0
@@ -562,9 +574,9 @@ class masking():
 
         if self.config.verbose or self.config.debug:
             print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
-            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)"))
+            print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)","Pool Name"))
             for ind in engine_list:
-                print('{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb']))
+                print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb'], ind['poolname']))
 
         if self.config.verbose or self.config.debug:
             print((colored(bannertext.banner_sl_box(text="CPU Usage:"), 'yellow')))
@@ -655,15 +667,19 @@ class masking():
             tempjpd.append(jpd)
 
         jpd2 = tempjpd
-        print_debug(jpd2)
-
+        print_debug("jpd2:".format(jpd2))
+        self.add_debugspace()
         qualified_engines, unqualified_engines = self.get_unqualified_qualified_engines(jpd2)
         print_debug('qualified_engines = \n{}\n'.format(qualified_engines))
         print_debug('unqualified_engines = \n{}\n'.format(unqualified_engines))
+        self.add_debugspace()
         jobpool_qualified_engines = self.get_jobpool_qualified_engines(qualified_engines)
         jobpool_unqualified_engines = self.get_jobpool_unqualified_engines(unqualified_engines)
         qualified_engines = jobpool_qualified_engines
         unqualified_engines = jobpool_unqualified_engines
+        print_debug('POOL:qualified_engines = \n{}\n'.format(qualified_engines))
+        print_debug('POOL:unqualified_engines = \n{}\n'.format(unqualified_engines))
+        self.add_debugspace()
 
         if len(qualified_engines) == 0:
             redcandidate = []
