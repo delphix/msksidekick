@@ -39,3 +39,8 @@ msksidekick.spec
 msksidekick_workflow.pptx
 msksidekick.code-workspace
 msksidekick.spec
+compiled
+docker_dummy_tail.sh
+ol7.Dockerfile
+ubuntu.Dockerfile
+win.Dockerfile

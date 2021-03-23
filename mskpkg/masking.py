@@ -383,9 +383,11 @@ class masking():
                 return data['Authorization']
             else:
                 print_debug("Error generating key {}".format(ip_address))
+                #sys.exit()
                 return None
         except:
             print_debug("Error connecting engine {}".format(ip_address))
+            #sys.exit()
             return None
 
     def get_api_response(self, ip_address, api_token, apicall, port=80):
@@ -438,16 +440,16 @@ class masking():
             print_debug(response.content.decode('utf-8'))
             return None
 
-    def post_api_response1(self, ip_address, api_token, apicall, body, port=80):
+    def put_api_response(self, ip_address, api_token, apicall, body, port=80):
         protocol = self.protocol
         if protocol == "https":
             port = 443
         api_url_base = '{}://{}:{}/masking/api/'.format(protocol, ip_address, port)
-        
+
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': '{0}'.format(api_token)}
         api_url = '{0}{1}'.format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
-        response = requests.post(api_url, headers=headers, json=body, verify=False)
+        response = requests.put(api_url, headers=headers, json=body, verify=False)
         #print(response)
         #data = json.loads(response.content.decode('utf-8'))
         if response.status_code == 200:
@@ -457,19 +459,21 @@ class masking():
             data = json.loads(response.content.decode('utf-8'))
             return data            
         else:
+            print_debug(" >>>>> Erroring api_url: {}".format(api_url))
+            print_debug(" >>>>> Erroring body   : {}".format(body))
             print(" {}".format(response.content.decode('utf-8')))
             return None
 
-    def put_api_response(self, ip_address, api_token, apicall, body, port=80):
+    def post_api_response1(self, ip_address, api_token, apicall, body, port=80):
         protocol = self.protocol
         if protocol == "https":
             port = 443
         api_url_base = '{}://{}:{}/masking/api/'.format(protocol, ip_address, port)
-        
+
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': '{0}'.format(api_token)}
         api_url = '{0}{1}'.format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
-        response = requests.put(api_url, headers=headers, json=body, verify=False)
+        response = requests.post(api_url, headers=headers, json=body, verify=False)
         #print(response)
         #data = json.loads(response.content.decode('utf-8'))
         if response.status_code == 200:
@@ -1327,6 +1331,10 @@ class masking():
         src_env_name = self.srcenvname
         tgt_env_name = self.tgtenvname
         sync_scope = "ENV"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_env(src_engine_name, tgt_engine_name, globalobjsync, src_env_name, tgt_env_name, sync_scope)
 
         print(" Adjust Source Connector for OTF jobs(if any)")
@@ -1349,13 +1357,25 @@ class masking():
         conn_type_list = ["database", "file", "mainframe-dataset"]
         for conn_type in conn_type_list:
             self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)        
-    
+
+    def validate_msk_eng_connection(self, msk_engine_name):
+        mskapikey = self.get_auth_key(msk_engine_name)
+        print_debug("mskapikey={}".format(mskapikey))
+
+        if mskapikey is None:
+            print(" Unable to connect Source engine {}. Please check username, user, password and protocol".format(msk_engine_name))
+            sys.exit()
+
     def sync_eng(self):
         src_engine_name = self.srcmskengname
         tgt_engine_name = self.tgtmskengname          
         globalobjsync = self.globalobjsync
         globalobjsync = True
         sync_scope = "ENGINE"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_env(src_engine_name, tgt_engine_name, globalobjsync, None, None, sync_scope)
 
         self.add_debugspace()
@@ -1411,6 +1431,10 @@ class masking():
         src_job_name = self.srcjobname
         globalobjsync = self.globalobjsync
         sync_scope = "JOB"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_job(src_engine_name, tgt_engine_name, globalobjsync, src_env_name, tgt_env_name, src_job_name)
 
         print(" Adjust Source Connector for OTF jobs(if any)")
@@ -1823,7 +1847,7 @@ class masking():
             print_debug(" tgtapiresponse: {}".format(tgtapiresponse))
             if 'errorMessage' in tgtapiresponse.keys():
                 if 'User already exists' in tgtapiresponse['errorMessage']:
-                    print_debug("User allready exists")
+                    print_debug("User already exists")
                     userid = self.find_user_id(userName, tgt_engine_name)
                     print_debug("userid = {}".format(userid))
                     updtgtapicall = "users/{}".format(userid)
@@ -2093,7 +2117,23 @@ class masking():
         print_debug("srcapikey={}".format(srcapikey))
         i = 0
         if srcapikey is not None:
-            rerun_env_id_list = []  
+
+            mskobjapicall = "masking-jobs?page_number=1&page_size=999"
+            mskobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, mskobjapicall)
+            for mskobj in mskobjapicallresponse['responseList']:
+                mskjobid = mskobj['maskingJobId']
+                mskjobname = mskobj['jobName']
+
+                delapicall = "masking-jobs/{}".format(mskjobid)
+                delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                if delapiresponse is None:
+                    # To Handle dependents especially on-the-fly-masking interdependent env
+                    print(" Unable to delete masking job {} with jobid {}. Will be retried.".format(mskjobname,mskjobid))
+                else:
+                    print(" Masking job {} with jobid {} deleted successfully.".format(mskjobname,mskjobid))
+                    # print(" ")
+
+            rerun_env_id_list = []
             syncobjapicall = "environments?page_number=1&page_size=999"
             syncobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, syncobjapicall)
             
@@ -2101,6 +2141,23 @@ class masking():
                 src_env_id = envobj['environmentId']
                 src_env_name = envobj['environmentName']
                 print_debug("srcenv = {},{}".format(src_env_id,src_env_name))
+
+                mskobjapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(src_env_id)
+                mskobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, mskobjapicall)
+                for mskobj in mskobjapicallresponse['responseList']:
+                    mskjobid = mskobj['maskingJobId']
+                    mskjobname = mskobj['jobName']
+
+                    delapicall = "masking-jobs/{}".format(mskjobid)
+                    delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                    if delapiresponse is None:
+                        # To Handle dependents especially on-the-fly-masking interdependent env
+                        print(" Unable to delete masking job {} with jobid {}. Will be retried.".format(mskjobname,
+                                                                                                        mskjobid))
+                    else:
+                        print(" Masking job {} with jobid {} deleted successfully.".format(mskjobname, mskjobid))
+                        # print(" ")
+
 
                 delapicall = "environments/{}".format(src_env_id)
                 delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
@@ -2560,7 +2617,7 @@ class masking():
 
             res = self.put_api_response(engine_name, apikey, apicall, mskjob_response, port=80)
             print_debug("res: {}".format(res))
-            print(" Job update complete")
+            print(" Job {} - update complete.".format(jobid))
             return_status = 0
             return return_status
         else:
@@ -2599,6 +2656,14 @@ class masking():
             src_user_name = userobj['userName']
             print_debug("User = {},{}".format(src_user_id, src_user_name))
             if src_user_name != 'admin':
+                if userobj['isAdmin']:
+                    print_debug("Converting {} to non-admin".format(src_user_name))
+                    userobj['isAdmin'] = False
+                    userobj['nonAdminProperties'] = { "roleId": 1,"environmentIds": []}
+                    updapicall = "users/{}".format(src_user_id)
+                    updapiresponse = self.put_api_response(src_engine_name, srcapikey, updapicall, userobj)
+                    print_debug("put updapiresponse = {}".format(updapiresponse))
+
                 delapicall = "users/{}".format(src_user_id)
                 delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
                 if delapiresponse is None:
