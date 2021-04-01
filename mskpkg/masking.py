@@ -28,6 +28,7 @@ class dotdict(dict):
 #selfreg = { "envname" : "mskdevenv", "jobname" : "mskjob30" , "jobexeclistfile" : "/home/ubuntu/WSL/mskaiagnt/output/jobexeclist.csv"}
 #self = dotdict(selfreg)
 #print(self.envname)  
+
 class masking():
     def __init__(self, config, **kwargs):
         self.scriptname = os.path.basename(__file__)
@@ -1664,6 +1665,7 @@ class masking():
             print(" Error connecting source engine {}".format(src_engine_name))
 
     def bkp_roles(self, bkp_main_dir):
+        role_mapping = {}
         src_engine_name = self.mskengname
         i = None
         srcapikey = self.get_auth_key(src_engine_name)
@@ -1673,13 +1675,20 @@ class masking():
             for role_rec in roleobjapicallresponse['responseList']:
                 i = 1
                 roleId = role_rec['roleId']
-                roleName = role_rec['roleName']                                   
+                roleName = role_rec['roleName']
+                role_mapping[roleId] = roleName
                 roleNameNoSpace = roleName.replace(" ","_")
                 role_bkp_dict = { "roleId": roleId, "roleName": roleName, "srcapiresponse": role_rec }
                 roleobj_bkp_file = "{}/roleobjects/backup_{}.dat".format(bkp_main_dir,roleNameNoSpace)
                 with open(roleobj_bkp_file, 'wb') as fh:
                     pickle.dump(role_bkp_dict, fh)
-                print("Created backup of role {}".format(roleName))   
+                print("Created backup of role {}".format(roleName))
+
+            role_mapping_file = "{}/mappings/backup_role_mapping.dat".format(bkp_main_dir)
+            with open(role_mapping_file, 'wb') as fh:
+                pickle.dump(role_mapping, fh)
+            print("Created mapping file for roles")
+            print(" ")
         else:
             print(" Error connecting source engine {}".format(src_engine_name))
 
@@ -1835,6 +1844,7 @@ class masking():
         tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
         if tgtapiresponse is None:
             print(" Failed to restore role {}".format(roleName))
+            print_debug(" Failed role payload: {}".format(srcapiresponse))
         else:
             print(" Restored/Synced role: {}".format(roleName))
 
@@ -1843,6 +1853,7 @@ class masking():
         tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
         if tgtapiresponse is None:
             print(" Failed to restore user {}".format(userName))
+            print_debug(" Failed user payload: {}".format(srcapiresponse))
         else:
             print_debug(" tgtapiresponse: {}".format(tgtapiresponse))
             if 'errorMessage' in tgtapiresponse.keys():
@@ -2055,36 +2066,57 @@ class masking():
             with open(env_mapping_file, 'rb') as m1:
                 env_mapping = pickle.load(m1)
             print_debug(" Source Env Mapping :{}".format(env_mapping))
-            tgtenvlist = []
+
+            role_mapping_file = "{}/mappings/backup_role_mapping.dat".format(backup_dir)
+            with open(role_mapping_file, 'rb') as m1:
+                role_mapping = pickle.load(m1)
+            print_debug(" Source Role Mapping :{}".format(role_mapping))
+
             userobj_bkp_dict_file_arr = os.listdir("{}/userobjects".format(backup_dir))
             print_debug("userobj_bkp_dict_file_arr: {}".format(userobj_bkp_dict_file_arr))
             for userobj_bkp_dict_file in userobj_bkp_dict_file_arr:
                 if userobj_bkp_dict_file != "backup_admin.dat":
+                    srcenvlist = []
+                    tgtenvlist = []
                     # All Privileges user is default out of the box
                     print_debug("userobj_bkp_dict_file: {}".format(userobj_bkp_dict_file))
                     userobj_bkp_dict_file_fullpath = "{}/{}/{}".format(backup_dir, "userobjects", userobj_bkp_dict_file)
                     print_debug("userobj_bkp_dict_file_fullpath: {}".format(userobj_bkp_dict_file_fullpath))
                     with open(userobj_bkp_dict_file_fullpath, 'rb') as f1:
                         userobj_bkp_dict = pickle.load(f1)
+
                     #print_debug(userobj_bkp_dict) # It will be huge
+
                     userId = userobj_bkp_dict['userId']
                     userName = userobj_bkp_dict['userName']
                     srcapiresponse = userobj_bkp_dict['srcapiresponse']
                     print_debug(" Is Admin:{}".format(srcapiresponse['isAdmin']))
                     if not srcapiresponse['isAdmin']:
                         print_debug(" srcnonAdminProperties = {}".format(srcapiresponse['nonAdminProperties']))
-                        print_debug(" srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
+
+                        if 'roleId' in srcapiresponse['nonAdminProperties'].keys():
+                            srcroleId = srcapiresponse['nonAdminProperties']['roleId']
+                            tmprolename = role_mapping[srcroleId]
+                            tgtroleid = self.find_role_id(tmprolename,tgt_engine_name)
+                            srcapiresponse['nonAdminProperties']['roleId'] = tgtroleid
+                            print_debug(" Before srcroleId = {}, After tgtroleid = {}".format(srcroleId,tgtroleid))
+
                         srcenvlist = srcapiresponse['nonAdminProperties']['environmentIds']
+                        print_debug(" srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
                         if len(srcenvlist) != 0:
                             for envid in srcenvlist:
                                 tmpenvname = env_mapping[envid]
                                 tgtenvid = self.find_env_id(tmpenvname, tgt_engine_name)
                                 print_debug(" tgtenvid = {}".format(tgtenvid))
                                 tgtenvlist.append(tgtenvid)
+                        else:
+                            tgtenvlist = []
                         print_debug(" tgtenvlist = {}".format(tgtenvlist))
                         print_debug(" Before : srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
                         srcapiresponse['nonAdminProperties']['environmentIds'] = tgtenvlist
                         print_debug(" After  : srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
+
+
                     self.restore_userobj(userName, tgtapikey, tgt_engine_name, srcapiresponse, backup_dir)
                     #print(" Restored user {}".format(userName))
             print(" ")

@@ -44,3 +44,9 @@ docker_dummy_tail.sh
 ol7.Dockerfile
 ubuntu.Dockerfile
 win.Dockerfile
+id_rsa
+github.config
+git-install.inf
+compile_win.ps1
+compile_unix.sh
+jenkins.groovy
