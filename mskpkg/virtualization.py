@@ -1,6 +1,8 @@
 import json
 import os
 import re
+import time
+from csv import DictReader
 from datetime import datetime, timedelta
 from statistics import mean
 
@@ -10,6 +12,7 @@ import mskpkg.globals as globals
 from mskpkg.DxLogging import print_debug
 from mskpkg.veconfig import loadveconfig
 import subprocess
+import threading
 
 class virtualization():
     def __init__(self, config, **kwargs):
@@ -141,52 +144,87 @@ class virtualization():
             print_debug("Engine {} : Error fetching data".format(ip_address))
             return None
 
-    def gen_cpu_file(self):
+    def create_dictobj(self, filename):
+        with open(filename, 'r') as read_obj:
+            reader = DictReader(read_obj)
+            dictobj = list(reader)
+            return dictobj
 
+
+    def get_cpu_for_engine(self,config_file_path,engine):
+        dxtoolkit_path = self.dxtoolkit_path
+        try:
+            print_debug("dxtoolkit_path: {}, config_file_path:{}, engine: {}".format(dxtoolkit_path + '/dx_get_cpu',
+                                                                                     config_file_path, engine))
+            out = subprocess.Popen([dxtoolkit_path + '/dx_get_cpu', '-d', engine, '-configfile', config_file_path],
+                                   stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+            stdout, stderr = out.communicate()
+            print_debug("stdout: {} ,stderr: {}".format(stdout, stderr))
+
+            r1 = re.findall(r"Can't connect", stdout.decode("utf-8"))
+            if not r1:
+                rs = stdout.split()[0]
+                rs = rs.decode("utf-8")
+                print_debug("rs: {}".format(rs))
+                if rs == "OK:" or "CRITICAL:" or "WARNING:":
+                    cpuvalue = stdout.split()[-1:][0]
+                    cpuvalue = cpuvalue.decode("utf-8")
+                    f = open(self.enginecpulistfile, "a")
+                    f.write("{},{}\n".format(engine, cpuvalue))
+                    f.close()
+                    print_debug("Engine {} : pulled cpu data - OK".format(engine))
+                else:
+                    print("Engine {} : Unable to pull cpu data".format(engine))
+                    f = open(self.enginecpulistfile, "a")
+                    f.write("{},{}\n".format(engine, "0"))
+                    f.close()
+            else:
+                print("Engine {} : Unable to connect and pull cpu data. Setting Default Value to 0".format(engine))
+                f = open(self.enginecpulistfile, "a")
+                f.write("{},{}\n".format(engine, "0"))
+                f.close()
+
+        except:
+            # print_debug("Engine {} : Error for get_cpu_raw_data".format(engine['ip_address']))
+            print_debug("Engine {} : Unable to pull cpu data".format(engine))
+
+
+
+    def gen_cpu_file(self):
+        t = time.time()
+        threadlist = {}
         f = open(self.enginecpulistfile, "w")
         f.write("{},{}\n".format("ip_address", "cpu"))
         f.close()
         dlpxconfig = loadveconfig()
         config_file_path = self.config_file_path
-        dxtoolkit_path = self.dxtoolkit_path
+
         dlpxconfig.get_config(config_file_path)
+        engine_dict = self.create_dictobj(self.enginelistfile)
+        eng_list = []
+        for eng_rec in engine_dict:
+            eng_list.append(eng_rec['ip_address'])
+        print_debug(eng_list)
+        i = 1
+
         for engine in dlpxconfig.dlpx_engines:
-            try:
-                # print_debug(dlpxconfig.dlpx_engines[engine])
-                # self.get_cpu_raw_data(dlpxconfig.dlpx_engines[engine])
-                # print("engine = {}".format(engine))
-                print_debug("dxtoolkit_path: {}, config_file_path:{}, engine: {}".format(dxtoolkit_path + '/dx_get_cpu',config_file_path, engine))
-                out = subprocess.Popen([dxtoolkit_path + '/dx_get_cpu', '-d', engine, '-configfile', config_file_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-                #print_debug("out = {}".format(out))
-                stdout, stderr = out.communicate()
-                print_debug("stdout: {} ,stderr: {}".format(stdout, stderr))
+            if engine in eng_list:
+                threadlist[i] = threading.Thread(target=self.get_cpu_for_engine, args=(config_file_path,engine,))
+                print_debug("threadlist: {}".format(threadlist))
+                threadlist[i].start()
+                #time.sleep(1)
+                i = i + 1
+                #self.get_cpu_for_engine(config_file_path,engine)
+            else:
+                print_debug("Engine {} not in pool. skipping ...".format(engine))
 
-                r1 = re.findall(r"Can't connect",stdout.decode("utf-8"))
-                if not r1:
-                    rs = stdout.split()[0]
-                    rs = rs.decode("utf-8")
-                    print_debug("rs: {}".format(rs))
-                    if rs == "OK:" or "CRITICAL:" or "WARNING:":
-                        cpuvalue = stdout.split()[-1:][0]
-                        cpuvalue = cpuvalue.decode("utf-8")
-                        f = open(self.enginecpulistfile, "a")
-                        f.write("{},{}\n".format(engine, cpuvalue))
-                        f.close()
-                        print_debug("Engine {} : pulled cpu data - OK".format(engine))
-                    else:
-                        print("Engine {} : Unable to pull cpu data".format(engine))
-                        f = open(self.enginecpulistfile, "a")
-                        f.write("{},{}\n".format(engine, "0"))
-                        f.close()
-                else:
-                    print("Engine {} : Unable to connect and pull cpu data. Defualt 0".format(engine))
-                    f = open(self.enginecpulistfile, "a")
-                    f.write("{},{}\n".format(engine, "0"))
-                    f.close()
+        for threadkeys in threadlist.keys():
+            print_debug("threadkey = {}".format(threadkeys))
+            threadlist[threadkeys].join()
 
-            except:
-                #print_debug("Engine {} : Error for get_cpu_raw_data".format(engine['ip_address']))
-                print_debug("Engine {} : Unable to pull cpu data".format(engine))
+        #print("CPU data collection done in {0} Minutes".format((time.time() - t) / 60))
+        print_debug("CPU data collection done in {0} Minutes".format((time.time() - t) / 60))
 
     def get_cpu_raw_data(self, engine):
         # engine = {'ip_address' : 'ajaydlpx6pri.dcenter.delphix.com' , 'username' : 'admin' , 'password' : 'delphix'}

@@ -305,7 +305,7 @@ class masking():
                 for engine in engine_list:
                     if self.mskengname == engine['ip_address']:
                         print("Engine {} already exists in pool".format(self.mskengname))
-                        print("Please use upd-engine OR del-engine and add-engine module")
+                        print("Please use del-engine and add-engine module")
                         exit()
                 f = open(self.enginelistfile, "a")
                 f.write("{},{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb, self.poolname))
@@ -384,6 +384,7 @@ class masking():
                 return data['Authorization']
             else:
                 print_debug("Error generating key {}".format(ip_address))
+                print_debug("Error response {}".format(response.content.decode('utf-8')))
                 #sys.exit()
                 return None
         except:
