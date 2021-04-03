@@ -81,4 +81,4 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bugfix  : Fixed role import with correct mapping.
 - Bugfix  : Fixed User import due to incorrect role id
 - Bugfix  : Capture cpu data only for matching entries in pool
-- Feature : Optimized cpu collection by adding parallelism
+- Feature : Optimized cpu collection by adding parallelism.
