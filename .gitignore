@@ -50,3 +50,5 @@ git-install.inf
 compile_win.ps1
 compile_unix.sh
 jenkins.groovy
+build_docker_containers.sh
+Instructions.txt.demo
