@@ -41,7 +41,7 @@ from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
-VERSION = "2.0.2"
+VERSION = "2.0.2r1"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
@@ -83,6 +83,16 @@ def print_banner():
     print(mybannera)
     print(mybannerc)
 
+def print_debug_banner(txtmsg):
+    bannertext = banner()
+    mybannero = bannertext.banner_sl_box_open(text=" ")
+    mybannera = bannertext.banner_sl_box_addline(txtmsg)
+    mybannerc = bannertext.banner_sl_box_close()
+    print_debug(" ")
+    print_debug(mybannero)
+    print_debug(mybannera)
+    print_debug(mybannerc)
+    print_debug(" ")
 
 # Common Options
 # @click.group()
@@ -528,7 +538,7 @@ def run_job(config, jobname, envname, run, mock, username, password, protocol, d
         print_debug(" ")
         print_debug(" ")
         print_debug(" ")
-        print_debug("Capture CPU usage data...")
+        print_debug_banner("Capture CPU usage data...")
         scriptdir = os.path.dirname(os.path.abspath(__file__))
         outputdir = os.path.join(scriptdir, 'output')
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
@@ -545,6 +555,7 @@ def run_job(config, jobname, envname, run, mock, username, password, protocol, d
         print("Error in VE module")
         return
 
+    print_debug_banner("Execute Job run module...")
     try:
         mskai = masking(config, jobname=jobname, envname=envname, run=run, mock=mock, username=username,
                         password=password, protocol=protocol, poolname=poolname)

@@ -5,6 +5,9 @@ import os
 import sys
 import datetime
 import pickle
+import time
+import subprocess
+import threading
 import inspect
 from collections import Counter
 from csv import DictReader
@@ -20,14 +23,27 @@ from mskpkg.banner import banner
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
+def dump_func_name(func):
+    def echo_func(*func_args, **func_kwargs):
+        print_debug('')
+        bannertext = banner()
+        mybannero = bannertext.banner_sl_box_open(text=" ")
+        mybannera = bannertext.banner_sl_box_addline(func.__name__)
+        mybannerc = bannertext.banner_sl_box_close()
+        print_debug(mybannero)
+        print_debug(mybannera)
+        print_debug(mybannerc)
+        print_debug('')
+        return func(*func_args, **func_kwargs)
+    return echo_func
+
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
-#selfreg = { "envname" : "mskdevenv", "jobname" : "mskjob30" , "jobexeclistfile" : "/home/ubuntu/WSL/mskaiagnt/output/jobexeclist.csv"}
-#self = dotdict(selfreg)
-#print(self.envname)  
+
 
 class masking():
     def __init__(self, config, **kwargs):
@@ -294,6 +310,17 @@ class masking():
                 rc.append(row)
         return rc
 
+    def print_debug_banner(self, txtmsg):
+        bannertext = banner()
+        mybannero = bannertext.banner_sl_box_open(text=" ")
+        mybannera = bannertext.banner_sl_box_addline(txtmsg)
+        mybannerc = bannertext.banner_sl_box_close()
+        print_debug(" ")
+        print_debug(mybannero)
+        print_debug(mybannera)
+        print_debug(mybannerc)
+        print_debug(" ")
+
     def add_engine(self):
         #import pdb
         #pdb.set_trace()
@@ -537,24 +564,47 @@ class masking():
         job_list = self.create_dictobj(self.joblistfile)
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         enginecpu_list = self.create_dictobj(self.enginecpulistfile)
-
-        self.add_debugspace()
-        print_debug("enginecpu_list:{}".format(enginecpu_list))
-        self.add_debugspace()
-
         engine_list = self.create_dictobj(self.enginelistfile)
         print_debug("engine_list:\n{}".format(engine_list))
 
+        self.add_debugspace()
+        enginecpu_namelist = []
+        if not enginecpu_list:
+            print_debug("enginecpu_list is empty")
+        else:
+            for ecpuname in enginecpu_list:
+                enginecpu_namelist.append(ecpuname['ip_address'])
+
+        print_debug("enginecpu_list:{}".format(enginecpu_list))
+        print_debug("enginecpu_namelist:{}".format(enginecpu_namelist))
+        self.add_debugspace()
+
         enginelist = []
+        nonreach_enginelist = []
         for engine in engine_list:
             engine_list_dict = collections.OrderedDict(ip_address=engine['ip_address'],
                                                        totalmb=int(engine['totalgb']) * 1024,
                                                        systemmb=int(engine['systemgb']) * 1024,
                                                        poolname=engine['poolname'])
-            enginelist.append(engine_list_dict)
+            apikey = self.get_auth_key(engine['ip_address'])
+            if apikey is not None:
+                enginelist.append(engine_list_dict)
+                if engine['ip_address'] not in enginecpu_namelist:
+                    tmpengip = {'ip_address': engine['ip_address'], 'cpu': '20'}
+                    enginecpu_list.append(tmpengip)
+            else:
+                nonreach_enginelist.append(engine_list_dict)
+
+        if not enginelist:
+            print("Unable to reach any engines. Please check connections to engine in pool")
+            sys.exit()
+
         print_debug("engine_list:\n{}".format(engine_list))
         print_debug("enginelist:\n{}".format(enginelist))
         engine_list = enginelist
+
+        self.add_debugspace()
+        print_debug("enginecpu_list:{}".format(enginecpu_list))
 
         joblistunq = self.unqlist(job_list, 'ip_address')
         print_debug("joblistunq:{}".format(joblistunq))
@@ -579,12 +629,29 @@ class masking():
         print(' Total     = {} MB'.format(int(jobreqlist[0]['jobmaxmemory']) + int(jobreqlist[0]['reservememory'])))
 
         if self.config.verbose or self.config.debug:
+            print((colored(bannertext.banner_sl_box(text="Job available on following Engines:"), 'yellow')))
+            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
+
+        if self.config.verbose or self.config.debug:
+            for row in engine_pool_for_job:
+                print(
+                    '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
+
+        if self.config.verbose or self.config.debug:
             print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
             print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)","Pool Name"))
             for ind in engine_list:
                 print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb'], ind['poolname']))
 
-        if self.config.verbose or self.config.debug:
+        if nonreach_enginelist:
+            if self.config.verbose or self.config.debug:
+                print((colored(bannertext.banner_sl_box(text="Unreachable Engine Pool:"), 'yellow')))
+                print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)","Pool Name"))
+                for ind in nonreach_enginelist:
+                    print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb'], ind['poolname']))
+
+        # if self.config.verbose or self.config.debug:
+        if self.config.debug:
             print((colored(bannertext.banner_sl_box(text="CPU Usage:"), 'yellow')))
             print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Used CPU(%)"))
             for ind in enginecpu_list:
@@ -620,7 +687,8 @@ class masking():
 
         print_debug('engineusage_od = \n{}'.format(engineusage_od))
 
-        if self.config.verbose or self.config.debug:
+        # if self.config.verbose or self.config.debug:
+        if self.config.debug:
             print((colored(bannertext.banner_sl_box(text="Memory Usage:"), 'yellow')))
             print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Used Memory(MB)"))
             for ind in engineusage_od:
@@ -650,14 +718,14 @@ class masking():
         print_debug('enginecpu_list = \n{}\n'.format(enginecpu_list))
         print_debug('engineusage = \n{}\n'.format(engineusage))
 
-        if self.config.verbose or self.config.debug:
-            print((colored(bannertext.banner_sl_box(text="Shortlisted Engines for running Job:"), 'yellow')))
-            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
-
-        if self.config.verbose or self.config.debug:
-            for row in engine_pool_for_job:
-                print(
-                    '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
+        # if self.config.verbose or self.config.debug:
+        #     print((colored(bannertext.banner_sl_box(text="Job available on following engines:"), 'yellow')))
+        #     print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
+        #
+        # if self.config.verbose or self.config.debug:
+        #     for row in engine_pool_for_job:
+        #         print(
+        #             '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
 
         jpd1 = self.join_dict(engine_pool_for_job, engine_list, 'ip_address', 'dummy')
         print_debug('jpd1 = \n{}\n'.format(jpd1))
@@ -958,8 +1026,43 @@ class masking():
                 print("Job list for engine {} successfully generated in file {}".format(self.mskengname,
                                                                                         self.joblistfile))
 
-    def pull_jobexeclist(self):
+    @dump_func_name
+    def pull_eng_jobexeclist(self, engine, testconn_eng_list):
+        print_debug("Engine : {}".format(json.dumps(engine, indent=4, sort_keys=True)))
+        engine_name = engine['ip_address']
+        apikey = self.get_auth_key(engine_name)
+        print_debug("apikey : {}".format(apikey))
+        if apikey is not None:
+            testconn_eng_list.append(engine_name)
+            apicall = "environments?page_number=1&page_size=999"
+            envlist_response = self.get_api_response(engine_name, apikey, apicall)
+            for envname in envlist_response['responseList']:
+                print_debug("envname : {}".format(envname))
+                jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(
+                    envname['environmentId'])
+                joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
+                joblist_responselist = joblist_response['responseList']
+                for joblist in joblist_responselist:
+                    print_debug("joblist : {}".format(joblist))
+                    fe = open(self.jobexeclistfile, "a")
+                    jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
+                    jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
+                    jobexeclist_responselist = jobexeclist_response['responseList']
+                    if jobexeclist_responselist != []:
+                        latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
+                        print_debug("latestexecid-status = {}".format(latestexecid['status']))
+                        if latestexecid['status'] == "RUNNING":
+                            fe.write("{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'], joblist['jobName'],
+                                                                        joblist['maxMemory'], '0',
+                                                                        envname['environmentId'],
+                                                                        envname['environmentName'],
+                                                                        engine_name,
+                                                                        latestexecid['status']))
+                    fe.close()
 
+    def pull_jobexeclist(self):
+        t = time.time()
+        threadlist = {}
         try:
             if os.path.exists(self.jobexeclistfile):
                 os.remove(self.jobexeclistfile)
@@ -978,37 +1081,34 @@ class masking():
             print_debug("Error while deleting file ", self.jobexeclistfile)
 
         engine_list = self.create_dictobj(self.enginelistfile)
+        testconn_eng_list = []
+        self.print_debug_banner("Pull engine jobexec data")
+        i = 0
         for engine in engine_list:
-            print_debug("Engine : {}".format(engine))
-            engine_name = engine['ip_address']
-            apikey = self.get_auth_key(engine_name)
-            print_debug("apikey : {}".format(apikey))
-            if apikey is not None:
-                apicall = "environments?page_number=1&page_size=999"
-                envlist_response = self.get_api_response(engine_name, apikey, apicall)
-                for envname in envlist_response['responseList']:
-                    print_debug("envname : {}".format(envname))
-                    jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
-                    joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
-                    joblist_responselist = joblist_response['responseList']
-                    for joblist in joblist_responselist:
-                        print_debug("joblist : {}".format(joblist))
-                        fe = open(self.jobexeclistfile, "a")
-                        jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
-                        jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
-                        jobexeclist_responselist = jobexeclist_response['responseList']
-                        if jobexeclist_responselist != []:
-                            latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
-                            print_debug("latestexecid-status = {}".format(latestexecid['status']))
-                            if latestexecid['status'] == "RUNNING":
-                                fe.write("{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'], joblist['jobName'],
-                                                                            joblist['maxMemory'], '0',
-                                                                            envname['environmentId'],
-                                                                            envname['environmentName'], 
-                                                                            engine_name,
-                                                                            latestexecid['status']))
-                        fe.close()
-        print_debug("File {} successfully generated".format(self.jobexeclistfile))
+            print_debug("jobexec Engine : {}".format(engine))
+            threadlist[i] = threading.Thread(target=self.pull_eng_jobexeclist,
+                                             args=(engine, testconn_eng_list,))
+            print_debug("threadlist: {}".format(threadlist))
+            threadlist[i].start()
+            # time.sleep(1)
+            i = i + 1
+
+        for threadkeys in threadlist.keys():
+            print_debug("threadkey = {}".format(threadkeys))
+            threadlist[threadkeys].join()
+
+        if not testconn_eng_list:
+            bannertext = banner()
+            if self.config.verbose or self.config.debug:
+                print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
+                print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Pool Name"))
+                for ind in engine_list:
+                    print('{0:>1}{1:<35}{2:>20}'.format(" ", ind['ip_address'], ind['poolname']))
+            print("Unable to connect any engine in engine pool")
+            sys.exit()
+        else:
+            print_debug("File {} successfully generated".format(self.jobexeclistfile))
+            print_debug("jobexeclist data collection done in {0} Minutes".format((time.time() - t) / 60))
 
     def pull_currjoblist(self):
         processid = os.getpid()

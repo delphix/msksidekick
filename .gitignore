@@ -52,3 +52,4 @@ compile_unix.sh
 jenkins.groovy
 build_docker_containers.sh
 Instructions.txt.demo
+dxtools.conf.good

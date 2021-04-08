@@ -2,11 +2,12 @@ import json
 import os
 import re
 import time
+import requests
+
 from csv import DictReader
 from datetime import datetime, timedelta
 from statistics import mean
-
-import requests
+from mskpkg.banner import banner
 
 import mskpkg.globals as globals
 from mskpkg.DxLogging import print_debug
@@ -150,8 +151,18 @@ class virtualization():
             dictobj = list(reader)
             return dictobj
 
+    def print_debug_banner(self, txtmsg):
+        bannertext = banner()
+        mybannero = bannertext.banner_sl_box_open(text=" ")
+        mybannera = bannertext.banner_sl_box_addline(txtmsg)
+        mybannerc = bannertext.banner_sl_box_close()
+        print_debug(" ")
+        print_debug(mybannero)
+        print_debug(mybannera)
+        print_debug(mybannerc)
+        print_debug(" ")
 
-    def get_cpu_for_engine(self,config_file_path,engine):
+    def get_cpu_for_engine(self,config_file_path,engine,dxtoolkit_eng_ip):
         dxtoolkit_path = self.dxtoolkit_path
         try:
             print_debug("dxtoolkit_path: {}, config_file_path:{}, engine: {}".format(dxtoolkit_path + '/dx_get_cpu',
@@ -171,7 +182,7 @@ class virtualization():
                     cpuvalue = stdout.split()[-1:][0]
                     cpuvalue = cpuvalue.decode("utf-8")
                     f = open(self.enginecpulistfile, "a")
-                    f.write("{},{}\n".format(engine, cpuvalue))
+                    f.write("{},{}\n".format(dxtoolkit_eng_ip, cpuvalue))
                     f.close()
                     print_debug("Engine {} : pulled cpu data - OK".format(engine))
                 else:
@@ -208,9 +219,13 @@ class virtualization():
         print_debug(eng_list)
         i = 1
 
+        self.print_debug_banner("Generate CPU Info")
         for engine in dlpxconfig.dlpx_engines:
-            if engine in eng_list:
-                threadlist[i] = threading.Thread(target=self.get_cpu_for_engine, args=(config_file_path,engine,))
+            print_debug("dxtoolkit Engine : {}".format(engine))
+            dxtoolkit_eng_ip = dlpxconfig.dlpx_engines[engine]['ip_address']
+            if dxtoolkit_eng_ip in eng_list:
+                print_debug("Found Engine {} in pool".format(dxtoolkit_eng_ip))
+                threadlist[i] = threading.Thread(target=self.get_cpu_for_engine, args=(config_file_path,engine,dxtoolkit_eng_ip,))
                 print_debug("threadlist: {}".format(threadlist))
                 threadlist[i].start()
                 #time.sleep(1)

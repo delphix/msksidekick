@@ -82,3 +82,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bugfix  : Fixed User import due to incorrect role id
 - Bugfix  : Capture cpu data only for matching entries in pool
 - Feature : Optimized cpu collection by adding parallelism.
+
+## [2.0.2r1] - 2021-08-04
+- Bugfix  : Ignore engines not reachable
+- Feature : Existing dxtools.conf can be used as it is for cpu data collection
+- Bugfix  : Set default 20% CPU usage if CPU data cannot be collected.
+- Bugfix  : Handled error if CPU data not collected for any engines due to missing entry in dxtools.conf
+- Feature : Significant Performance Tuning.
