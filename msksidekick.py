@@ -41,7 +41,7 @@ from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
-VERSION = "2.0.2r1"
+VERSION = "2.0.3-rc1"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
