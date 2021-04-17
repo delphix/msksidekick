@@ -41,7 +41,7 @@ from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
-VERSION = "2.0.3-rc1"
+VERSION = "2.0.3"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
@@ -83,6 +83,7 @@ def print_banner():
     print(mybannera)
     print(mybannerc)
 
+
 def print_debug_banner(txtmsg):
     bannertext = banner()
     mybannero = bannertext.banner_sl_box_open(text=" ")
@@ -93,6 +94,7 @@ def print_debug_banner(txtmsg):
     print_debug(mybannera)
     print_debug(mybannerc)
     print_debug(" ")
+
 
 # Common Options
 # @click.group()
@@ -127,7 +129,7 @@ def version(config):
               help='Total memory in GB for masking engine')
 @click.option('--systemgb', '-s', default='', prompt='Enter system memory in GB for masking engine',
               help='System memory in GB for masking engine')
-@click.option('--poolname','-p', default='Default', prompt='Enter Pool Name for Engine',
+@click.option('--poolname', '-p', default='Default', prompt='Enter Pool Name for Engine',
               help='Pool name to assign engine')
 # @click.option('--enabled','-e', default='Y', prompt='Enable Masking Engine for pooling',
 #            type=click.Choice(['Y', 'N'], case_sensitive=True),
@@ -485,7 +487,7 @@ def cleanup_eng(config, mskengname, username, password, protocol):
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
 @click.option('--dxtoolkit_path', default='', prompt='Enter dxtoolkit path',
               help='dxtoolkit full path')
-@click.option('--poolname','-p', default='Default', help='Pool name to assign engine')
+@click.option('--poolname', '-p', default='Default', help='Pool name to assign engine')
 @pass_config
 def run_job(config, jobname, envname, run, mock, username, password, protocol, dxtoolkit_path, poolname):
     """ This module will execute masking job on best candidate engine"""

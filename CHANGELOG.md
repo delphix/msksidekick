@@ -89,3 +89,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bugfix  : Set default 20% CPU usage if CPU data cannot be collected.
 - Bugfix  : Handled error if CPU data not collected for any engines due to missing entry in dxtools.conf
 - Feature : Significant Performance Tuning.
+
+## [2.0.3] - 2021-16-04
+- Published version
