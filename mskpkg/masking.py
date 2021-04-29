@@ -1118,80 +1118,90 @@ class masking():
             if os.path.exists(self.jobexeclistfile):
                 os.remove(self.jobexeclistfile)
             fe = open(self.jobexeclistfile, "w")
-            fe.write("{},{},{},{},{},{},{},{},{},{},{}\n".format("jobid", "jobname", "jobmaxmemory", "reservememory",
+            fe.write("{},{},{},{},{},{},{},{},{},{},{},{}\n".format("jobid", "jobname", "jobmaxmemory", "reservememory",
                                                             "environmentid", "environmentname", "ip_address",
-                                                            "jobstatus","rowsMasked","rowsTotal","startTime"))
+                                                            "jobstatus","rowsMasked","rowsTotal","startTime","poolname"))
             fe.close()
         except:
             print_debug("Error while deleting file ", self.jobexeclistfile)
 
         engine_list = self.create_dictobj(self.enginelistfile)
+        #print(engine_list)
         for engine in engine_list:
-            print_debug("Engine : {}".format(engine))
-            engine_name = engine['ip_address']
-            apikey = self.get_auth_key(engine_name)
-            print_debug("apikey : {}".format(apikey))
-            if apikey is not None:
-                apicall = "environments?page_number=1&page_size=999"
-                envlist_response = self.get_api_response(engine_name, apikey, apicall)
-                for envname in envlist_response['responseList']:
-                    print_debug("envname : {}".format(envname))
-                    jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
-                    joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
-                    joblist_responselist = joblist_response['responseList']
-                    for joblist in joblist_responselist:
-                        print_debug("joblist : {}".format(joblist))
-                        fe = open(self.jobexeclistfile, "a")
-                        jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
-                        jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
-                        jobexeclist_responselist = jobexeclist_response['responseList']
-                        if jobexeclist_responselist != []:
-                            latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
-                            print_debug("latestexecid = {}".format(latestexecid))
+            #print_debug("Engine : {}".format(engine))
+            print_debug("Engine : {}, Poolname: {}".format(engine, engine['poolname']))
+            if engine['poolname'] == self.poolname:
+                #print("Engine : {}, Poolname: {}".format(engine, engine['poolname']))
+                engine_name = engine['ip_address']
+                apikey = self.get_auth_key(engine_name)
+                print_debug("apikey : {}".format(apikey))
+                if apikey is not None:
+                    apicall = "environments?page_number=1&page_size=999"
+                    envlist_response = self.get_api_response(engine_name, apikey, apicall)
+                    for envname in envlist_response['responseList']:
+                        print_debug("envname : {}".format(envname))
+                        jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
+                        joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
+                        joblist_responselist = joblist_response['responseList']
+                        for joblist in joblist_responselist:
+                            print_debug("joblist : {}".format(joblist))
+                            fe = open(self.jobexeclistfile, "a")
+                            jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
+                            jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
+                            jobexeclist_responselist = jobexeclist_response['responseList']
+                            if jobexeclist_responselist != []:
+                                latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
+                                print_debug("latestexecid = {}".format(latestexecid))
 
-                            if self.jobname and self.envname:
-                                print_debug("By Job")
-                                if self.jobname == joblist['jobName'] and self.envname == envname['environmentName']:
-                                    fe.write(
-                                        "{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
-                                                                           joblist['jobName'],
-                                                                           joblist['maxMemory'],
-                                                                           '0',
-                                                                           envname['environmentId'],
-                                                                           envname['environmentName'],
-                                                                           engine_name,
-                                                                           latestexecid['status'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                           latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime']
-                                                                           ))
-                                    fe.close()
-                            else:
-                                print_debug("All Jobs")
-                                print_debug(latestexecid)
-                                if latestexecid['status'] == "RUNNING" or latestexecid['status'] == "QUEUED" or latestexecid['status'] == "SUCCEEDED":
-                                    fe.write(
-                                        "{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
-                                                                           joblist['jobName'],
-                                                                           joblist['maxMemory'],
-                                                                           '0',
-                                                                           envname['environmentId'],
-                                                                           envname['environmentName'],
-                                                                           engine_name,
-                                                                           latestexecid['status'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                           latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime']
-                                                                           ))
-                                    fe.close()
+                                if self.jobname and self.envname:
+                                    print_debug("By Job")
+                                    if self.jobname == joblist['jobName'] and self.envname == envname['environmentName']:
+                                        fe.write(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
+                                                                               joblist['jobName'],
+                                                                               joblist['maxMemory'],
+                                                                               '0',
+                                                                               envname['environmentId'],
+                                                                               envname['environmentName'],
+                                                                               engine_name,
+                                                                               latestexecid['status'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
+                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
+                                                                               engine['poolname']
+                                                                               ))
+                                        fe.close()
+                                else:
+                                    print_debug("All Jobs")
+                                    print_debug(latestexecid)
+                                    # Customer requested to list all status
+                                    #if latestexecid['status'] == "RUNNING" or latestexecid['status'] == "QUEUED" or latestexecid['status'] == "SUCCEEDED":
+                                    if latestexecid['status'] == latestexecid['status']:
+                                        fe.write(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
+                                                                               joblist['jobName'],
+                                                                               joblist['maxMemory'],
+                                                                               '0',
+                                                                               envname['environmentId'],
+                                                                               envname['environmentName'],
+                                                                               engine_name,
+                                                                               latestexecid['status'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
+                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
+                                                                               engine['poolname']
+                                                                               ))
+                                        fe.close()
+            else:
+                print_debug("Engine not from requested pool : {}, Poolname: {}".format(engine, engine['poolname']))
         print_debug("File {} successfully generated".format(self.jobexeclistfile))
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         print((colored(bannertext.banner_sl_box(text="JOB POOL EXECUTION LIST:"), 'yellow')))
-        print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}'.format(" ", "Engine name", "Job Id", "Job Name", "Env Name", "Job Status","rowsMasked","rowsTotal","startTime/submitTime/endTime"))
+        print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}'.format(" ", "Engine name", "Job Id", "Job Name", "Env Name", "Job Status","rowsMasked","rowsTotal","startTime/submitTime/endTime","PoolName"))
 
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         for row in jobexec_list:
-            print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}'.format(" ", row['ip_address'], row['jobid'], row['jobname'], row['environmentname'], row['jobstatus'],row['rowsMasked'],row['rowsTotal'],row['startTime']))
+            print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}'.format(" ", row['ip_address'], row['jobid'], row['jobname'], row['environmentname'], row['jobstatus'],row['rowsMasked'],row['rowsTotal'],row['startTime'],row['poolname']))
         os.remove(self.jobexeclistfile)
 
     def sync_globalobj(self):
@@ -2788,7 +2798,7 @@ class masking():
             src_user_id = userobj['userId']
             src_user_name = userobj['userName']
             print_debug("User = {},{}".format(src_user_id, src_user_name))
-            if src_user_name != 'admin':
+            if src_user_name != 'admin' and src_user_name != self.username:
                 if userobj['isAdmin']:
                     print_debug("Converting {} to non-admin".format(src_user_name))
                     userobj['isAdmin'] = False

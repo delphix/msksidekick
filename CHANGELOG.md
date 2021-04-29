@@ -91,4 +91,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Feature : Significant Performance Tuning.
 
 ## [2.0.3] - 2021-16-04
+- Added pool filter to pull_currjoblist
+- Bugfix : Delete roles and users fails when named admin user is used.  
 - Published version

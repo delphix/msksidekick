@@ -218,8 +218,9 @@ def pull_joblist(config, mskengname, username, password, protocol):
 @click.password_option('--password', '-p', default='mskenv',
                        help='Masking mskaiagnt password to connect masking engines')
 @click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
+@click.option('--poolname', default='Default', help='Pool name of engine')
 @pass_config
-def pull_currjoblist(config, jobname, envname, username, password, protocol):
+def pull_currjoblist(config, jobname, envname, username, password, protocol, poolname):
     """ This module will pull current job execution list from all engines"""
 
     print_banner()
@@ -236,7 +237,7 @@ def pull_currjoblist(config, jobname, envname, username, password, protocol):
 
     try:
         mskai = masking(config, jobname=jobname, envname=envname, username=username, password=password,
-                        protocol=protocol)
+                        protocol=protocol, poolname=poolname)
         mskai.pull_currjoblist()
     except Exception as e:
         print("Error in MSK module")
