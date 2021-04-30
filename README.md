@@ -104,14 +104,14 @@ e.g.
 
 ##### Run job - simulation
 ```shell
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1
 ```
 By default this runs in simulation mode. If job need to be executed then "-r" switch need to be added to above command
 ##### Real run
 ```shell
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 -r 
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1 -r 
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 -r 
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password xxxxxx --protocol http --dxtoolkit_path /home/ubuntu/WSL/dxtoolkit2 --poolname POOL1 -r 
 ```
 
 ##### Sync Eng
@@ -128,7 +128,7 @@ By default this runs in simulation mode. If job need to be executed then "-r" sw
 
 ##### Sync Job
 ```shell
-./msksidekick sync-job --srcmskengname atmskengine01 --tgtmskengname atmskengine02 --srcenvname mskdevenv --tgtenvname mskdevenv --srcjobname maskjob6 -g --username admin --password xxxxxx --protocol https
+./msksidekick sync-job --srcmskengname atmskengine01 --tgtmskengname atmskengine02 --srcenvname mskdevenv --tgtenvname mskdevenv --srcjobname mskjob6 -g --username admin --password xxxxxx --protocol https
 ```
 
 ##### Cleanup Engine
@@ -159,7 +159,7 @@ Only RUNNING and QUEUED jobs will be listed
 
 ##### Pull specific job status from engine pool
 ```shell
-./msksidekick pull-currjoblist -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https
+./msksidekick pull-currjoblist -j mskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https
 ```
 All status of Job will be listed
 

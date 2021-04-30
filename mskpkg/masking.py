@@ -5,6 +5,9 @@ import os
 import sys
 import datetime
 import pickle
+import time
+import subprocess
+import threading
 import inspect
 from collections import Counter
 from csv import DictReader
@@ -20,14 +23,28 @@ from mskpkg.banner import banner
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
+def dump_func_name(func):
+    def echo_func(*func_args, **func_kwargs):
+        print_debug('')
+        bannertext = banner()
+        mybannero = bannertext.banner_sl_box_open(text=" ")
+        mybannera = bannertext.banner_sl_box_addline(func.__name__)
+        mybannerc = bannertext.banner_sl_box_close()
+        print_debug(mybannero)
+        print_debug(mybannera)
+        print_debug(mybannerc)
+        print_debug('')
+        return func(*func_args, **func_kwargs)
+    return echo_func
+
 class dotdict(dict):
     """dot.notation access to dictionary attributes"""
     __getattr__ = dict.get
     __setattr__ = dict.__setitem__
     __delattr__ = dict.__delitem__
-#selfreg = { "envname" : "mskdevenv", "jobname" : "mskjob30" , "jobexeclistfile" : "/home/ubuntu/WSL/mskaiagnt/output/jobexeclist.csv"}
-#self = dotdict(selfreg)
-#print(self.envname)  
+
+
 class masking():
     def __init__(self, config, **kwargs):
         self.scriptname = os.path.basename(__file__)
@@ -195,34 +212,46 @@ class masking():
                 qualified_engines.append(item)
             else:
                 unqualified_engines.append(item)
-        #print(qualified_engines)
-        #print(unqualified_engines)
+        print_debug("qualified_engines:{}".format(qualified_engines))
+        print_debug("unqualified_engines:{}".format(unqualified_engines))
         return qualified_engines, unqualified_engines
 
     def get_jobpool_qualified_engines(self, dict1):
-        qualified_engines = []
-        unqualified_engines = []
+        poolqualified_engines = []
+        poolunqualified_engines = []
         print_debug("poolname = {}".format(self.poolname))
         for item in dict1:
             if item['poolname'] == self.poolname:
-                qualified_engines.append(item)
+                poolqualified_engines.append(item)
+                print_debug("Pool matched for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
             else:
-                unqualified_engines.append(item)
-        print_debug("jobpool qualified_engines:{}".format(qualified_engines))
-        print_debug("jobpool unqualified_engines:{}".format(unqualified_engines))
-        return qualified_engines
+                poolunqualified_engines.append(item)
+                print_debug("Pool did not match for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
+        print_debug("jobpool qualified_engines:{}".format(poolqualified_engines))
+        print_debug("jobpool unqualified_engines:{}".format(poolunqualified_engines))
+        return poolqualified_engines
 
     def get_jobpool_unqualified_engines(self, dict1):
-        qualified_engines = []
-        unqualified_engines = []
+        upoolqualified_engines = []
+        upoolunqualified_engines = []
         for item in dict1:
             if item['poolname'] == self.poolname:
-                qualified_engines.append(item)
+                upoolqualified_engines.append(item)
+                print_debug("Pool matched for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
             else:
-                unqualified_engines.append(item)
-        print_debug("jobpool unqualified_qualified_engines:{}".format(qualified_engines))
-        print_debug("jobpool unqualified_unqualified_engines:{}".format(unqualified_engines))
-        return qualified_engines
+                upoolunqualified_engines.append(item)
+                print_debug("Pool did not match for {}. requested pool :{}, engine pool:{}".format(item['ip_address'],
+                                                                                                   self.poolname,
+                                                                                                   item['poolname']))
+        print_debug("jobpool unqualified_qualified_engines:{}".format(upoolqualified_engines))
+        print_debug("jobpool unqualified_unqualified_engines:{}".format(upoolunqualified_engines))
+        return upoolqualified_engines
 
     def get_max_free_mem_engine(self, dict1):
         freemem = 0
@@ -281,6 +310,17 @@ class masking():
                 rc.append(row)
         return rc
 
+    def print_debug_banner(self, txtmsg):
+        bannertext = banner()
+        mybannero = bannertext.banner_sl_box_open(text=" ")
+        mybannera = bannertext.banner_sl_box_addline(txtmsg)
+        mybannerc = bannertext.banner_sl_box_close()
+        print_debug(" ")
+        print_debug(mybannero)
+        print_debug(mybannera)
+        print_debug(mybannerc)
+        print_debug(" ")
+
     def add_engine(self):
         #import pdb
         #pdb.set_trace()
@@ -292,7 +332,7 @@ class masking():
                 for engine in engine_list:
                     if self.mskengname == engine['ip_address']:
                         print("Engine {} already exists in pool".format(self.mskengname))
-                        print("Please use upd-engine OR del-engine and add-engine module")
+                        print("Please use del-engine and add-engine module")
                         exit()
                 f = open(self.enginelistfile, "a")
                 f.write("{},{},{},{}\n".format(self.mskengname, self.totalgb, self.systemgb, self.poolname))
@@ -371,9 +411,12 @@ class masking():
                 return data['Authorization']
             else:
                 print_debug("Error generating key {}".format(ip_address))
+                print_debug("Error response {}".format(response.content.decode('utf-8')))
+                #sys.exit()
                 return None
         except:
             print_debug("Error connecting engine {}".format(ip_address))
+            #sys.exit()
             return None
 
     def get_api_response(self, ip_address, api_token, apicall, port=80):
@@ -426,16 +469,16 @@ class masking():
             print_debug(response.content.decode('utf-8'))
             return None
 
-    def post_api_response1(self, ip_address, api_token, apicall, body, port=80):
+    def put_api_response(self, ip_address, api_token, apicall, body, port=80):
         protocol = self.protocol
         if protocol == "https":
             port = 443
         api_url_base = '{}://{}:{}/masking/api/'.format(protocol, ip_address, port)
-        
+
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': '{0}'.format(api_token)}
         api_url = '{0}{1}'.format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
-        response = requests.post(api_url, headers=headers, json=body, verify=False)
+        response = requests.put(api_url, headers=headers, json=body, verify=False)
         #print(response)
         #data = json.loads(response.content.decode('utf-8'))
         if response.status_code == 200:
@@ -445,19 +488,21 @@ class masking():
             data = json.loads(response.content.decode('utf-8'))
             return data            
         else:
+            print_debug(" >>>>> Erroring api_url: {}".format(api_url))
+            print_debug(" >>>>> Erroring body   : {}".format(body))
             print(" {}".format(response.content.decode('utf-8')))
             return None
 
-    def put_api_response(self, ip_address, api_token, apicall, body, port=80):
+    def post_api_response1(self, ip_address, api_token, apicall, body, port=80):
         protocol = self.protocol
         if protocol == "https":
             port = 443
         api_url_base = '{}://{}:{}/masking/api/'.format(protocol, ip_address, port)
-        
+
         headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': '{0}'.format(api_token)}
         api_url = '{0}{1}'.format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
-        response = requests.put(api_url, headers=headers, json=body, verify=False)
+        response = requests.post(api_url, headers=headers, json=body, verify=False)
         #print(response)
         #data = json.loads(response.content.decode('utf-8'))
         if response.status_code == 200:
@@ -519,24 +564,47 @@ class masking():
         job_list = self.create_dictobj(self.joblistfile)
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         enginecpu_list = self.create_dictobj(self.enginecpulistfile)
-
-        self.add_debugspace()
-        print_debug("enginecpu_list:{}".format(enginecpu_list))
-        self.add_debugspace()
-
         engine_list = self.create_dictobj(self.enginelistfile)
         print_debug("engine_list:\n{}".format(engine_list))
 
+        self.add_debugspace()
+        enginecpu_namelist = []
+        if not enginecpu_list:
+            print_debug("enginecpu_list is empty")
+        else:
+            for ecpuname in enginecpu_list:
+                enginecpu_namelist.append(ecpuname['ip_address'])
+
+        print_debug("enginecpu_list:{}".format(enginecpu_list))
+        print_debug("enginecpu_namelist:{}".format(enginecpu_namelist))
+        self.add_debugspace()
+
         enginelist = []
+        nonreach_enginelist = []
         for engine in engine_list:
             engine_list_dict = collections.OrderedDict(ip_address=engine['ip_address'],
                                                        totalmb=int(engine['totalgb']) * 1024,
                                                        systemmb=int(engine['systemgb']) * 1024,
                                                        poolname=engine['poolname'])
-            enginelist.append(engine_list_dict)
+            apikey = self.get_auth_key(engine['ip_address'])
+            if apikey is not None:
+                enginelist.append(engine_list_dict)
+                if engine['ip_address'] not in enginecpu_namelist:
+                    tmpengip = {'ip_address': engine['ip_address'], 'cpu': '20'}
+                    enginecpu_list.append(tmpengip)
+            else:
+                nonreach_enginelist.append(engine_list_dict)
+
+        if not enginelist:
+            print("Unable to reach any engines. Please check connections to engine in pool")
+            sys.exit()
+
         print_debug("engine_list:\n{}".format(engine_list))
         print_debug("enginelist:\n{}".format(enginelist))
         engine_list = enginelist
+
+        self.add_debugspace()
+        print_debug("enginecpu_list:{}".format(enginecpu_list))
 
         joblistunq = self.unqlist(job_list, 'ip_address')
         print_debug("joblistunq:{}".format(joblistunq))
@@ -561,12 +629,29 @@ class masking():
         print(' Total     = {} MB'.format(int(jobreqlist[0]['jobmaxmemory']) + int(jobreqlist[0]['reservememory'])))
 
         if self.config.verbose or self.config.debug:
-            print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
-            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)"))
-            for ind in engine_list:
-                print('{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb']))
+            print((colored(bannertext.banner_sl_box(text="Job available on following Engines:"), 'yellow')))
+            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
 
         if self.config.verbose or self.config.debug:
+            for row in engine_pool_for_job:
+                print(
+                    '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
+
+        if self.config.verbose or self.config.debug:
+            print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
+            print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)","Pool Name"))
+            for ind in engine_list:
+                print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb'], ind['poolname']))
+
+        if nonreach_enginelist:
+            if self.config.verbose or self.config.debug:
+                print((colored(bannertext.banner_sl_box(text="Unreachable Engine Pool:"), 'yellow')))
+                print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format("", "Engine Name", "Total Memory(MB)", "System Memory(MB)","Pool Name"))
+                for ind in nonreach_enginelist:
+                    print('{0:>1}{1:<35}{2:>20}{3:>20}{4:>20}'.format(" ", ind['ip_address'], ind['totalmb'], ind['systemmb'], ind['poolname']))
+
+        # if self.config.verbose or self.config.debug:
+        if self.config.debug:
             print((colored(bannertext.banner_sl_box(text="CPU Usage:"), 'yellow')))
             print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Used CPU(%)"))
             for ind in enginecpu_list:
@@ -602,7 +687,8 @@ class masking():
 
         print_debug('engineusage_od = \n{}'.format(engineusage_od))
 
-        if self.config.verbose or self.config.debug:
+        # if self.config.verbose or self.config.debug:
+        if self.config.debug:
             print((colored(bannertext.banner_sl_box(text="Memory Usage:"), 'yellow')))
             print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Used Memory(MB)"))
             for ind in engineusage_od:
@@ -632,14 +718,14 @@ class masking():
         print_debug('enginecpu_list = \n{}\n'.format(enginecpu_list))
         print_debug('engineusage = \n{}\n'.format(engineusage))
 
-        if self.config.verbose or self.config.debug:
-            print((colored(bannertext.banner_sl_box(text="Shortlisted Engines for running Job:"), 'yellow')))
-            print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
-
-        if self.config.verbose or self.config.debug:
-            for row in engine_pool_for_job:
-                print(
-                    '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
+        # if self.config.verbose or self.config.debug:
+        #     print((colored(bannertext.banner_sl_box(text="Job available on following engines:"), 'yellow')))
+        #     print('{0:>1}{1:<35}{2:>20}{3:>20}'.format("", "Engine Name", "Job ID", "Env Name"))
+        #
+        # if self.config.verbose or self.config.debug:
+        #     for row in engine_pool_for_job:
+        #         print(
+        #             '{0:>1}{1:<35}{2:>20}{3:>20}'.format(" ", row['ip_address'], row['jobid'], row['environmentname']))
 
         jpd1 = self.join_dict(engine_pool_for_job, engine_list, 'ip_address', 'dummy')
         print_debug('jpd1 = \n{}\n'.format(jpd1))
@@ -655,15 +741,19 @@ class masking():
             tempjpd.append(jpd)
 
         jpd2 = tempjpd
-        print_debug(jpd2)
-
+        print_debug("jpd2:".format(jpd2))
+        self.add_debugspace()
         qualified_engines, unqualified_engines = self.get_unqualified_qualified_engines(jpd2)
         print_debug('qualified_engines = \n{}\n'.format(qualified_engines))
         print_debug('unqualified_engines = \n{}\n'.format(unqualified_engines))
+        self.add_debugspace()
         jobpool_qualified_engines = self.get_jobpool_qualified_engines(qualified_engines)
         jobpool_unqualified_engines = self.get_jobpool_unqualified_engines(unqualified_engines)
         qualified_engines = jobpool_qualified_engines
         unqualified_engines = jobpool_unqualified_engines
+        print_debug('POOL:qualified_engines = \n{}\n'.format(qualified_engines))
+        print_debug('POOL:unqualified_engines = \n{}\n'.format(unqualified_engines))
+        self.add_debugspace()
 
         if len(qualified_engines) == 0:
             redcandidate = []
@@ -936,8 +1026,43 @@ class masking():
                 print("Job list for engine {} successfully generated in file {}".format(self.mskengname,
                                                                                         self.joblistfile))
 
-    def pull_jobexeclist(self):
+    @dump_func_name
+    def pull_eng_jobexeclist(self, engine, testconn_eng_list):
+        print_debug("Engine : {}".format(json.dumps(engine, indent=4, sort_keys=True)))
+        engine_name = engine['ip_address']
+        apikey = self.get_auth_key(engine_name)
+        print_debug("apikey : {}".format(apikey))
+        if apikey is not None:
+            testconn_eng_list.append(engine_name)
+            apicall = "environments?page_number=1&page_size=999"
+            envlist_response = self.get_api_response(engine_name, apikey, apicall)
+            for envname in envlist_response['responseList']:
+                print_debug("envname : {}".format(envname))
+                jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(
+                    envname['environmentId'])
+                joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
+                joblist_responselist = joblist_response['responseList']
+                for joblist in joblist_responselist:
+                    print_debug("joblist : {}".format(joblist))
+                    fe = open(self.jobexeclistfile, "a")
+                    jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
+                    jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
+                    jobexeclist_responselist = jobexeclist_response['responseList']
+                    if jobexeclist_responselist != []:
+                        latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
+                        print_debug("latestexecid-status = {}".format(latestexecid['status']))
+                        if latestexecid['status'] == "RUNNING":
+                            fe.write("{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'], joblist['jobName'],
+                                                                        joblist['maxMemory'], '0',
+                                                                        envname['environmentId'],
+                                                                        envname['environmentName'],
+                                                                        engine_name,
+                                                                        latestexecid['status']))
+                    fe.close()
 
+    def pull_jobexeclist(self):
+        t = time.time()
+        threadlist = {}
         try:
             if os.path.exists(self.jobexeclistfile):
                 os.remove(self.jobexeclistfile)
@@ -956,37 +1081,34 @@ class masking():
             print_debug("Error while deleting file ", self.jobexeclistfile)
 
         engine_list = self.create_dictobj(self.enginelistfile)
+        testconn_eng_list = []
+        self.print_debug_banner("Pull engine jobexec data")
+        i = 0
         for engine in engine_list:
-            print_debug("Engine : {}".format(engine))
-            engine_name = engine['ip_address']
-            apikey = self.get_auth_key(engine_name)
-            print_debug("apikey : {}".format(apikey))
-            if apikey is not None:
-                apicall = "environments?page_number=1&page_size=999"
-                envlist_response = self.get_api_response(engine_name, apikey, apicall)
-                for envname in envlist_response['responseList']:
-                    print_debug("envname : {}".format(envname))
-                    jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
-                    joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
-                    joblist_responselist = joblist_response['responseList']
-                    for joblist in joblist_responselist:
-                        print_debug("joblist : {}".format(joblist))
-                        fe = open(self.jobexeclistfile, "a")
-                        jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
-                        jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
-                        jobexeclist_responselist = jobexeclist_response['responseList']
-                        if jobexeclist_responselist != []:
-                            latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
-                            print_debug("latestexecid-status = {}".format(latestexecid['status']))
-                            if latestexecid['status'] == "RUNNING":
-                                fe.write("{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'], joblist['jobName'],
-                                                                            joblist['maxMemory'], '0',
-                                                                            envname['environmentId'],
-                                                                            envname['environmentName'], 
-                                                                            engine_name,
-                                                                            latestexecid['status']))
-                        fe.close()
-        print_debug("File {} successfully generated".format(self.jobexeclistfile))
+            print_debug("jobexec Engine : {}".format(engine))
+            threadlist[i] = threading.Thread(target=self.pull_eng_jobexeclist,
+                                             args=(engine, testconn_eng_list,))
+            print_debug("threadlist: {}".format(threadlist))
+            threadlist[i].start()
+            # time.sleep(1)
+            i = i + 1
+
+        for threadkeys in threadlist.keys():
+            print_debug("threadkey = {}".format(threadkeys))
+            threadlist[threadkeys].join()
+
+        if not testconn_eng_list:
+            bannertext = banner()
+            if self.config.verbose or self.config.debug:
+                print((colored(bannertext.banner_sl_box(text="Available Engine Pool:"), 'yellow')))
+                print('{0:>1}{1:<35}{2:>20}'.format("", "Engine Name", "Pool Name"))
+                for ind in engine_list:
+                    print('{0:>1}{1:<35}{2:>20}'.format(" ", ind['ip_address'], ind['poolname']))
+            print("Unable to connect any engine in engine pool")
+            sys.exit()
+        else:
+            print_debug("File {} successfully generated".format(self.jobexeclistfile))
+            print_debug("jobexeclist data collection done in {0} Minutes".format((time.time() - t) / 60))
 
     def pull_currjoblist(self):
         processid = os.getpid()
@@ -996,80 +1118,90 @@ class masking():
             if os.path.exists(self.jobexeclistfile):
                 os.remove(self.jobexeclistfile)
             fe = open(self.jobexeclistfile, "w")
-            fe.write("{},{},{},{},{},{},{},{},{},{},{}\n".format("jobid", "jobname", "jobmaxmemory", "reservememory",
+            fe.write("{},{},{},{},{},{},{},{},{},{},{},{}\n".format("jobid", "jobname", "jobmaxmemory", "reservememory",
                                                             "environmentid", "environmentname", "ip_address",
-                                                            "jobstatus","rowsMasked","rowsTotal","startTime"))
+                                                            "jobstatus","rowsMasked","rowsTotal","startTime","poolname"))
             fe.close()
         except:
             print_debug("Error while deleting file ", self.jobexeclistfile)
 
         engine_list = self.create_dictobj(self.enginelistfile)
+        #print(engine_list)
         for engine in engine_list:
-            print_debug("Engine : {}".format(engine))
-            engine_name = engine['ip_address']
-            apikey = self.get_auth_key(engine_name)
-            print_debug("apikey : {}".format(apikey))
-            if apikey is not None:
-                apicall = "environments?page_number=1&page_size=999"
-                envlist_response = self.get_api_response(engine_name, apikey, apicall)
-                for envname in envlist_response['responseList']:
-                    print_debug("envname : {}".format(envname))
-                    jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
-                    joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
-                    joblist_responselist = joblist_response['responseList']
-                    for joblist in joblist_responselist:
-                        print_debug("joblist : {}".format(joblist))
-                        fe = open(self.jobexeclistfile, "a")
-                        jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
-                        jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
-                        jobexeclist_responselist = jobexeclist_response['responseList']
-                        if jobexeclist_responselist != []:
-                            latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
-                            print_debug("latestexecid = {}".format(latestexecid))
+            #print_debug("Engine : {}".format(engine))
+            print_debug("Engine : {}, Poolname: {}".format(engine, engine['poolname']))
+            if engine['poolname'] == self.poolname:
+                #print("Engine : {}, Poolname: {}".format(engine, engine['poolname']))
+                engine_name = engine['ip_address']
+                apikey = self.get_auth_key(engine_name)
+                print_debug("apikey : {}".format(apikey))
+                if apikey is not None:
+                    apicall = "environments?page_number=1&page_size=999"
+                    envlist_response = self.get_api_response(engine_name, apikey, apicall)
+                    for envname in envlist_response['responseList']:
+                        print_debug("envname : {}".format(envname))
+                        jobapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(envname['environmentId'])
+                        joblist_response = self.get_api_response(engine_name, apikey, jobapicall)
+                        joblist_responselist = joblist_response['responseList']
+                        for joblist in joblist_responselist:
+                            print_debug("joblist : {}".format(joblist))
+                            fe = open(self.jobexeclistfile, "a")
+                            jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(joblist['maskingJobId'])
+                            jobexeclist_response = self.get_api_response(engine_name, apikey, jobexecapicall)
+                            jobexeclist_responselist = jobexeclist_response['responseList']
+                            if jobexeclist_responselist != []:
+                                latestexecid = max(jobexeclist_responselist, key=lambda ev: ev['executionId'])
+                                print_debug("latestexecid = {}".format(latestexecid))
 
-                            if self.jobname and self.envname:
-                                print_debug("By Job")
-                                if self.jobname == joblist['jobName'] and self.envname == envname['environmentName']:
-                                    fe.write(
-                                        "{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
-                                                                           joblist['jobName'],
-                                                                           joblist['maxMemory'],
-                                                                           '0',
-                                                                           envname['environmentId'],
-                                                                           envname['environmentName'],
-                                                                           engine_name,
-                                                                           latestexecid['status'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                           latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime']
-                                                                           ))
-                                    fe.close()
-                            else:
-                                print_debug("All Jobs")
-                                print_debug(latestexecid)
-                                if latestexecid['status'] == "RUNNING" or latestexecid['status'] == "QUEUED" or latestexecid['status'] == "SUCCEEDED":
-                                    fe.write(
-                                        "{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
-                                                                           joblist['jobName'],
-                                                                           joblist['maxMemory'],
-                                                                           '0',
-                                                                           envname['environmentId'],
-                                                                           envname['environmentName'],
-                                                                           engine_name,
-                                                                           latestexecid['status'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                           "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                           latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime']
-                                                                           ))
-                                    fe.close()
+                                if self.jobname and self.envname:
+                                    print_debug("By Job")
+                                    if self.jobname == joblist['jobName'] and self.envname == envname['environmentName']:
+                                        fe.write(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
+                                                                               joblist['jobName'],
+                                                                               joblist['maxMemory'],
+                                                                               '0',
+                                                                               envname['environmentId'],
+                                                                               envname['environmentName'],
+                                                                               engine_name,
+                                                                               latestexecid['status'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
+                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
+                                                                               engine['poolname']
+                                                                               ))
+                                        fe.close()
+                                else:
+                                    print_debug("All Jobs")
+                                    print_debug(latestexecid)
+                                    # Customer requested to list all status
+                                    #if latestexecid['status'] == "RUNNING" or latestexecid['status'] == "QUEUED" or latestexecid['status'] == "SUCCEEDED":
+                                    if latestexecid['status'] == latestexecid['status']:
+                                        fe.write(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
+                                                                               joblist['jobName'],
+                                                                               joblist['maxMemory'],
+                                                                               '0',
+                                                                               envname['environmentId'],
+                                                                               envname['environmentName'],
+                                                                               engine_name,
+                                                                               latestexecid['status'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
+                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
+                                                                               engine['poolname']
+                                                                               ))
+                                        fe.close()
+            else:
+                print_debug("Engine not from requested pool : {}, Poolname: {}".format(engine, engine['poolname']))
         print_debug("File {} successfully generated".format(self.jobexeclistfile))
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         print((colored(bannertext.banner_sl_box(text="JOB POOL EXECUTION LIST:"), 'yellow')))
-        print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}'.format(" ", "Engine name", "Job Id", "Job Name", "Env Name", "Job Status","rowsMasked","rowsTotal","startTime/submitTime/endTime"))
+        print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}'.format(" ", "Engine name", "Job Id", "Job Name", "Env Name", "Job Status","rowsMasked","rowsTotal","startTime/submitTime/endTime","PoolName"))
 
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         for row in jobexec_list:
-            print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}'.format(" ", row['ip_address'], row['jobid'], row['jobname'], row['environmentname'], row['jobstatus'],row['rowsMasked'],row['rowsTotal'],row['startTime']))
+            print('{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}'.format(" ", row['ip_address'], row['jobid'], row['jobname'], row['environmentname'], row['jobstatus'],row['rowsMasked'],row['rowsTotal'],row['startTime'],row['poolname']))
         os.remove(self.jobexeclistfile)
 
     def sync_globalobj(self):
@@ -1311,6 +1443,10 @@ class masking():
         src_env_name = self.srcenvname
         tgt_env_name = self.tgtenvname
         sync_scope = "ENV"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_env(src_engine_name, tgt_engine_name, globalobjsync, src_env_name, tgt_env_name, sync_scope)
 
         print(" Adjust Source Connector for OTF jobs(if any)")
@@ -1333,13 +1469,25 @@ class masking():
         conn_type_list = ["database", "file", "mainframe-dataset"]
         for conn_type in conn_type_list:
             self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)        
-    
+
+    def validate_msk_eng_connection(self, msk_engine_name):
+        mskapikey = self.get_auth_key(msk_engine_name)
+        print_debug("mskapikey={}".format(mskapikey))
+
+        if mskapikey is None:
+            print(" Unable to connect Source engine {}. Please check username, user, password and protocol".format(msk_engine_name))
+            sys.exit()
+
     def sync_eng(self):
         src_engine_name = self.srcmskengname
         tgt_engine_name = self.tgtmskengname          
         globalobjsync = self.globalobjsync
         globalobjsync = True
         sync_scope = "ENGINE"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_env(src_engine_name, tgt_engine_name, globalobjsync, None, None, sync_scope)
 
         self.add_debugspace()
@@ -1395,6 +1543,10 @@ class masking():
         src_job_name = self.srcjobname
         globalobjsync = self.globalobjsync
         sync_scope = "JOB"
+
+        self.validate_msk_eng_connection(src_engine_name)
+        self.validate_msk_eng_connection(tgt_engine_name)
+
         self.process_sync_job(src_engine_name, tgt_engine_name, globalobjsync, src_env_name, tgt_env_name, src_job_name)
 
         print(" Adjust Source Connector for OTF jobs(if any)")
@@ -1624,6 +1776,7 @@ class masking():
             print(" Error connecting source engine {}".format(src_engine_name))
 
     def bkp_roles(self, bkp_main_dir):
+        role_mapping = {}
         src_engine_name = self.mskengname
         i = None
         srcapikey = self.get_auth_key(src_engine_name)
@@ -1633,13 +1786,20 @@ class masking():
             for role_rec in roleobjapicallresponse['responseList']:
                 i = 1
                 roleId = role_rec['roleId']
-                roleName = role_rec['roleName']                                   
+                roleName = role_rec['roleName']
+                role_mapping[roleId] = roleName
                 roleNameNoSpace = roleName.replace(" ","_")
                 role_bkp_dict = { "roleId": roleId, "roleName": roleName, "srcapiresponse": role_rec }
                 roleobj_bkp_file = "{}/roleobjects/backup_{}.dat".format(bkp_main_dir,roleNameNoSpace)
                 with open(roleobj_bkp_file, 'wb') as fh:
                     pickle.dump(role_bkp_dict, fh)
-                print("Created backup of role {}".format(roleName))   
+                print("Created backup of role {}".format(roleName))
+
+            role_mapping_file = "{}/mappings/backup_role_mapping.dat".format(bkp_main_dir)
+            with open(role_mapping_file, 'wb') as fh:
+                pickle.dump(role_mapping, fh)
+            print("Created mapping file for roles")
+            print(" ")
         else:
             print(" Error connecting source engine {}".format(src_engine_name))
 
@@ -1795,6 +1955,7 @@ class masking():
         tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
         if tgtapiresponse is None:
             print(" Failed to restore role {}".format(roleName))
+            print_debug(" Failed role payload: {}".format(srcapiresponse))
         else:
             print(" Restored/Synced role: {}".format(roleName))
 
@@ -1803,11 +1964,12 @@ class masking():
         tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
         if tgtapiresponse is None:
             print(" Failed to restore user {}".format(userName))
+            print_debug(" Failed user payload: {}".format(srcapiresponse))
         else:
             print_debug(" tgtapiresponse: {}".format(tgtapiresponse))
             if 'errorMessage' in tgtapiresponse.keys():
                 if 'User already exists' in tgtapiresponse['errorMessage']:
-                    print_debug("User allready exists")
+                    print_debug("User already exists")
                     userid = self.find_user_id(userName, tgt_engine_name)
                     print_debug("userid = {}".format(userid))
                     updtgtapicall = "users/{}".format(userid)
@@ -2015,36 +2177,57 @@ class masking():
             with open(env_mapping_file, 'rb') as m1:
                 env_mapping = pickle.load(m1)
             print_debug(" Source Env Mapping :{}".format(env_mapping))
-            tgtenvlist = []
+
+            role_mapping_file = "{}/mappings/backup_role_mapping.dat".format(backup_dir)
+            with open(role_mapping_file, 'rb') as m1:
+                role_mapping = pickle.load(m1)
+            print_debug(" Source Role Mapping :{}".format(role_mapping))
+
             userobj_bkp_dict_file_arr = os.listdir("{}/userobjects".format(backup_dir))
             print_debug("userobj_bkp_dict_file_arr: {}".format(userobj_bkp_dict_file_arr))
             for userobj_bkp_dict_file in userobj_bkp_dict_file_arr:
                 if userobj_bkp_dict_file != "backup_admin.dat":
+                    srcenvlist = []
+                    tgtenvlist = []
                     # All Privileges user is default out of the box
                     print_debug("userobj_bkp_dict_file: {}".format(userobj_bkp_dict_file))
                     userobj_bkp_dict_file_fullpath = "{}/{}/{}".format(backup_dir, "userobjects", userobj_bkp_dict_file)
                     print_debug("userobj_bkp_dict_file_fullpath: {}".format(userobj_bkp_dict_file_fullpath))
                     with open(userobj_bkp_dict_file_fullpath, 'rb') as f1:
                         userobj_bkp_dict = pickle.load(f1)
+
                     #print_debug(userobj_bkp_dict) # It will be huge
+
                     userId = userobj_bkp_dict['userId']
                     userName = userobj_bkp_dict['userName']
                     srcapiresponse = userobj_bkp_dict['srcapiresponse']
                     print_debug(" Is Admin:{}".format(srcapiresponse['isAdmin']))
                     if not srcapiresponse['isAdmin']:
                         print_debug(" srcnonAdminProperties = {}".format(srcapiresponse['nonAdminProperties']))
-                        print_debug(" srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
+
+                        if 'roleId' in srcapiresponse['nonAdminProperties'].keys():
+                            srcroleId = srcapiresponse['nonAdminProperties']['roleId']
+                            tmprolename = role_mapping[srcroleId]
+                            tgtroleid = self.find_role_id(tmprolename,tgt_engine_name)
+                            srcapiresponse['nonAdminProperties']['roleId'] = tgtroleid
+                            print_debug(" Before srcroleId = {}, After tgtroleid = {}".format(srcroleId,tgtroleid))
+
                         srcenvlist = srcapiresponse['nonAdminProperties']['environmentIds']
+                        print_debug(" srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
                         if len(srcenvlist) != 0:
                             for envid in srcenvlist:
                                 tmpenvname = env_mapping[envid]
                                 tgtenvid = self.find_env_id(tmpenvname, tgt_engine_name)
                                 print_debug(" tgtenvid = {}".format(tgtenvid))
                                 tgtenvlist.append(tgtenvid)
+                        else:
+                            tgtenvlist = []
                         print_debug(" tgtenvlist = {}".format(tgtenvlist))
                         print_debug(" Before : srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
                         srcapiresponse['nonAdminProperties']['environmentIds'] = tgtenvlist
                         print_debug(" After  : srcenvlist = {}".format(srcapiresponse['nonAdminProperties']['environmentIds']))
+
+
                     self.restore_userobj(userName, tgtapikey, tgt_engine_name, srcapiresponse, backup_dir)
                     #print(" Restored user {}".format(userName))
             print(" ")
@@ -2077,7 +2260,23 @@ class masking():
         print_debug("srcapikey={}".format(srcapikey))
         i = 0
         if srcapikey is not None:
-            rerun_env_id_list = []  
+
+            mskobjapicall = "masking-jobs?page_number=1&page_size=999"
+            mskobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, mskobjapicall)
+            for mskobj in mskobjapicallresponse['responseList']:
+                mskjobid = mskobj['maskingJobId']
+                mskjobname = mskobj['jobName']
+
+                delapicall = "masking-jobs/{}".format(mskjobid)
+                delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                if delapiresponse is None:
+                    # To Handle dependents especially on-the-fly-masking interdependent env
+                    print(" Unable to delete masking job {} with jobid {}. Will be retried.".format(mskjobname,mskjobid))
+                else:
+                    print(" Masking job {} with jobid {} deleted successfully.".format(mskjobname,mskjobid))
+                    # print(" ")
+
+            rerun_env_id_list = []
             syncobjapicall = "environments?page_number=1&page_size=999"
             syncobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, syncobjapicall)
             
@@ -2085,6 +2284,23 @@ class masking():
                 src_env_id = envobj['environmentId']
                 src_env_name = envobj['environmentName']
                 print_debug("srcenv = {},{}".format(src_env_id,src_env_name))
+
+                mskobjapicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(src_env_id)
+                mskobjapicallresponse = self.get_api_response(src_engine_name, srcapikey, mskobjapicall)
+                for mskobj in mskobjapicallresponse['responseList']:
+                    mskjobid = mskobj['maskingJobId']
+                    mskjobname = mskobj['jobName']
+
+                    delapicall = "masking-jobs/{}".format(mskjobid)
+                    delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                    if delapiresponse is None:
+                        # To Handle dependents especially on-the-fly-masking interdependent env
+                        print(" Unable to delete masking job {} with jobid {}. Will be retried.".format(mskjobname,
+                                                                                                        mskjobid))
+                    else:
+                        print(" Masking job {} with jobid {} deleted successfully.".format(mskjobname, mskjobid))
+                        # print(" ")
+
 
                 delapicall = "environments/{}".format(src_env_id)
                 delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
@@ -2544,7 +2760,7 @@ class masking():
 
             res = self.put_api_response(engine_name, apikey, apicall, mskjob_response, port=80)
             print_debug("res: {}".format(res))
-            print(" Job update complete")
+            print(" Job {} - update complete.".format(jobid))
             return_status = 0
             return return_status
         else:
@@ -2582,7 +2798,15 @@ class masking():
             src_user_id = userobj['userId']
             src_user_name = userobj['userName']
             print_debug("User = {},{}".format(src_user_id, src_user_name))
-            if src_user_name != 'admin':
+            if src_user_name != 'admin' and src_user_name != self.username:
+                if userobj['isAdmin']:
+                    print_debug("Converting {} to non-admin".format(src_user_name))
+                    userobj['isAdmin'] = False
+                    userobj['nonAdminProperties'] = { "roleId": 1,"environmentIds": []}
+                    updapicall = "users/{}".format(src_user_id)
+                    updapiresponse = self.put_api_response(src_engine_name, srcapikey, updapicall, userobj)
+                    print_debug("put updapiresponse = {}".format(updapiresponse))
+
                 delapicall = "users/{}".format(src_user_id)
                 delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
                 if delapiresponse is None:

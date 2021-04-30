@@ -1,4 +1,10 @@
 export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
+export MSKADMINPWD=xxxxxx
+export MASKING_ENGINE_DOMAIN=delphix.com
+export MASKING_ENGINE1=atmskengine01m.${MASKING_ENGINE_DOMAIN}
+export MASKING_ENGINE2=atmskengine02m.${MASKING_ENGINE_DOMAIN}
+export MASKING_ENGINE3=atmskengine03m.${MASKING_ENGINE_DOMAIN}
+
 # help
 ./msksidekick --help
 
@@ -6,9 +12,9 @@ export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
 ./msksidekick list-engine
 
 # Add real dcenter engines
-./msksidekick add-engine -m atmskengine01 -t 64 -s 10
-./msksidekick add-engine -m atmskengine02 -t 64 -s 10 --poolname POOL1
-./msksidekick add-engine -m atmskengine03 -t 64 -s 10 --poolname POOL1
+./msksidekick add-engine -m $MASKING_ENGINE1 -t 64 -s 10
+./msksidekick add-engine -m $MASKING_ENGINE2 -t 64 -s 10 --poolname POOL1
+./msksidekick add-engine -m $MASKING_ENGINE3 -t 64 -s 10 --poolname POOL1
 
 # List engines
 ./msksidekick list-engine
@@ -20,30 +26,36 @@ export DXTOOLKIT_PATH=/Users/ajay.thotangare/dxtoolkit2
 $DXTOOLKIT_PATH/dx_get_appliance -all -configfile ./dxtools.conf
 
 # Pull job list
-./msksidekick pull-joblist -m all --username admin --password xxxxxx --protocol http
+./msksidekick pull-joblist -m all --username admin --password $MSKADMINPWD --protocol http
 
 # Run job - simulataion
-./msksidekick run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH --poolname POOL1
+./msksidekick run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH --poolname POOL1
 
 # Real run
-./msksidekick -v run-job -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r
+./msksidekick -v run-job -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https --dxtoolkit_path $DXTOOLKIT_PATH -r
 
 # Sync Eng
-./msksidekick sync-eng --srcmskengname atmskengine01 --tgtmskengname atmskengine02 -g --username admin --password xxxxxx --protocol https --delextra
+./msksidekick sync-eng --srcmskengname $MASKING_ENGINE1 --tgtmskengname $MASKING_ENGINE2 -g --username admin --password $MSKADMINPWD --protocol https --delextra
 
 # Sync Env
-./msksidekick sync-env --srcmskengname atmskengine01 --srcenvname DB2LUW --tgtmskengname atmskengine01 --tgtenvname DB2LUW --username admin --password xxxxxx
+./msksidekick sync-env --srcmskengname $MASKING_ENGINE1 --srcenvname DB2LUW --tgtmskengname $MASKING_ENGINE2 --tgtenvname DB2LUW --username admin --password $MSKADMINPWD
 
 # Sync Job
-./msksidekick sync-job --srcmskengname atmskengine01 --srcenvname mskdevenv --tgtmskengname atmskengine01 --tgtenvname mskdevenv --srcjobname maskjob6 --username admin --password xxxxxx
-
-# Cleanup Engine
-./msksidekick cleanup-eng --mskengname atmskengine02 --username admin --password xxxxxx
+./msksidekick sync-job --srcmskengname $MASKING_ENGINE1 --srcenvname mskdevenv --tgtmskengname $MASKING_ENGINE2 --tgtenvname mskdevenv --srcjobname mskjob6 --username admin --password $MSKADMINPWD
 
 # Pull job execution list from engine pool
-./msksidekick pull-currjoblist --username admin --password xxxxxx --protocol https [ Only RUNNING and QUEUED jobs will be listed ]
+./msksidekick pull-currjoblist --username admin --password $MSKADMINPWD --protocol https [ Only RUNNING and QUEUED jobs will be listed ]
 
 # Pull specific job status from engine pool
-./msksidekick pull-currjoblist -j maskjob6 -e mskdevenv --username admin --password xxxxxx --protocol https [ All status of Job will be listed ]
+./msksidekick pull-currjoblist -j mskjob6 -e mskdevenv --username admin --password $MSKADMINPWD --protocol https [ All status of Job will be listed ]
+
+# Backup Engine
+./msksidekick offline-backup-eng --mskengname $MASKING_ENGINE2 --backup_dir /Users/ajay.thotangare/github/msksidekick/output/backups --username admin --password $MSKADMINPWD --protocol http
+
+# Cleanup Engine 2 (simulate failure)
+./msksidekick cleanup-eng --mskengname $MASKING_ENGINE2 --username admin --password $MSKADMINPWD --protocol https
+
+# Restore Engine
+./msksidekick offline-restore-eng --mskengname $MASKING_ENGINE2 --backup_dir /Users/ajay.thotangare/github/msksidekick/output/backups/03152021_141428 --username admin --password $MSKADMINPWD --protocol http
