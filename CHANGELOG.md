@@ -94,3 +94,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Added pool filter to pull_currjoblist
 - Bugfix : Delete roles and users fails when named admin user is used.  
 - Published version
+
+## [2.0.4-rc1] - 2021-10-05
+- Feature : Restore single environment
+- Bugfix  : Corner case - If job can ceeled before calculation of rows, errors shown in job status

@@ -41,7 +41,7 @@ from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
-VERSION = "2.0.3"
+VERSION = "2.0.4-rc1"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
@@ -748,6 +748,44 @@ def offline_restore_eng(config, mskengname, username, password, protocol, backup
         print(str(e))
         return
 
+# offline_restore_env
+@cli.command()
+@click.option('--mskengname', default='', prompt='Enter Masking Engine name',
+              help='Masking Engine name')
+@click.option('--backup_dir', default='', prompt='Enter Backup Path',
+              help='Backup Path')
+@click.option('--envname', '-e', default='mskenv', prompt='Enter name of Environment to be restored',
+              help='Name of Environment to be restored')
+@click.option('--username', '-u', prompt='Enter Masking username',
+              help='Masking sidekick username to connect masking engines')
+@click.password_option('--password', '-p',
+                       help='Masking mskaiagnt password to connect masking engines')
+@click.option('--protocol', default='https', help='Enter protocol http|https to access Masking Engines')
+@pass_config
+def offline_restore_env(config, mskengname, envname, username, password, protocol, backup_dir):
+    """ This module will offline restore engine from backups"""
+
+    print_banner()
+    if config.debug:
+        globals.initialize()
+        globals.debug = config.debug
+
+    if config.verbose:
+        print_debug('Verbose mode enabled')
+        print_debug('mskengname    = {0}'.format(mskengname))
+        print_debug('envname       = {0}'.format(envname))
+        print_debug('username      = {0}'.format(username))
+        print_debug('protocol      = {0}'.format(protocol))
+        print_debug('backup_dir    = {0}'.format(backup_dir))
+
+    try:
+        mskai = masking(config, mskengname=mskengname, envname=envname, username=username, password=password, protocol=protocol,
+                        backup_dir=backup_dir)
+        mskai.offline_restore_env()
+    except Exception as e:
+        print("Error in MSK module")
+        print(str(e))
+        return
 
 if __name__ == "__main__":
     cli()

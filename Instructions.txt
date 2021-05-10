@@ -59,3 +59,6 @@ $DXTOOLKIT_PATH/dx_get_appliance -all -configfile ./dxtools.conf
 
 # Restore Engine
 ./msksidekick offline-restore-eng --mskengname $MASKING_ENGINE2 --backup_dir /Users/ajay.thotangare/github/msksidekick/output/backups/03152021_141428 --username admin --password $MSKADMINPWD --protocol http
+
+# Restore Single environment [ All dependent environments should pre-exist especially on-the-fly job source environment]
+./msksidekick offline-restore-env --mskengname $MASKING_ENGINE2 --envname mskdevenv --backup_dir /Users/ajay.thotangare/github/msksidekick/output/backups/03152021_141428 --username admin --password $MSKADMINPWD --protocol http
