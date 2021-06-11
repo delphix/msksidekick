@@ -98,3 +98,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [2.0.4-rc1] - 2021-10-05
 - Feature : Restore single environment
 - Bugfix  : Corner case - If job can ceeled before calculation of rows, errors shown in job status
+
+## [2.0.4-rc2] - 2021-10-05
+- Bugfix  : Sync single environment with different name
+- Feature : Added feature to exclude/include admin user in cleanup. Default leave admin users as it is.
+- Change  : Disabled connector test bydefualt after sync. It can be done seperately
