@@ -1400,7 +1400,7 @@ class masking():
             cr_env_response = self.create_environment(tgt_engine_name, src_dummy_conn_app_id, self.src_dummy_conn_env, "MASK")
             src_dummy_conn_env_id = cr_env_response['environmentId']
 
-            print_debug("Source Env name = {}, Source Env purpose = {}, Source App name = {}, Source Env Id = {}, Source App Id = {}".format(self.src_dummy_conn_env, "MASK", self.src_dummy_conn_app,src_dummy_conn_env_id,src_dummy_conn_app_id))
+            print_debug("Source Common OTF Env Id = {}, Source Common OTF App Id = {}".format(src_dummy_conn_env_id,src_dummy_conn_app_id))
             print(" ")
             #        
 
@@ -1428,17 +1428,23 @@ class masking():
                     
                     if sync_scope == "ENV":
                         if tgt_env_not_exists:
+                            print_debug("In if tgt_env_not_exists : {}".format(tgt_env_not_exists))
                             cr_app_response = self.create_application(tgt_engine_name, src_app_name)
                             tgt_app_id = cr_app_response['applicationId']
                         else:
+                            print_debug("In else tgt_env_not_exists : {}".format(tgt_env_not_exists))
                             tgt_env_id = self.find_env_id(tgt_env_name, tgt_engine_name)
                             tgt_app_id = self.find_appid_of_envid(tgt_env_id, tgt_engine_name)
+                    elif sync_scope == "ENGINE":
+                        cr_app_response = self.create_application(tgt_engine_name, src_app_name)
+                        tgt_app_id = cr_app_response['applicationId']
+                        tgt_env_name = src_env_name
                     else:
                         cr_app_response = self.create_application(tgt_engine_name, src_app_name)
                         tgt_app_id = cr_app_response['applicationId']
 
                     if sync_scope == "ENV":
-                        cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, src_env_name, src_env_purpose)
+                        cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, tgt_env_name, src_env_purpose)
                         tgt_env_id = cr_env_response['environmentId']
                     else:
                         cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, tgt_env_name, src_env_purpose)
@@ -1448,9 +1454,6 @@ class masking():
 
                     tgtapicall = "import?force_overwrite=true&environment_id={}&source_environment_id={}".format(tgt_env_id,src_dummy_conn_env_id)
                     tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
-
-                    if sync_scope == "ENGINE":
-                        tgt_env_name = src_env_name
 
                     if tgtapiresponse is None:
                          print(" Environment {} sync failed.".format(tgt_env_name))
@@ -2047,11 +2050,15 @@ class masking():
                 userId = user_rec['userId']
                 userName = user_rec['userName']
                 userNameNoSpace = userName.replace(" ", "_")
-                isAdmin = user_rec['isAdmin']
-                user_rec['password'] = "Delphix-123"
 
-                print_debug("User payload: {}".format(user_rec))
-                if userName != "admin":
+                if userName != 'admin' and userName != self.username:
+                    isAdmin = user_rec['isAdmin']
+                    user_rec['password'] = "Delphix-123"
+                    print_debug("User payload: {}".format(user_rec))
+                else:
+                    print(" Username is : {}. Default admin OR self user are ignored in sync operation".format(userName))
+
+                if userName != "admin" and userName != self.username:
                     print_debug(" User {}".format(userName))
                     if isAdmin:
                         print_debug("User role : Admin")
@@ -2071,9 +2078,6 @@ class masking():
                             tgtenvlist.append(tgtenvid)
                         user_rec['nonAdminProperties']['environmentIds'] = tgtenvlist
                         self.restore_userobj(userName, tgtapikey, tgt_engine_name, user_rec, None)
-
-                else:
-                    print(" Ignore User {}".format(userName))
         else:
             print(" Error connecting source engine {}".format(src_engine_name))
 
@@ -2683,8 +2687,10 @@ class masking():
                     i = 1
                     #print_debug("env id = {}".format(envname['environmentId']))
                     return envname['environmentId']
+                    break
+
             if i == 0:
-                print(" Error: unable to find env id for environment {}".format(paramenvname))
+                print(" Unable to find env id for environment {}".format(paramenvname))
                 return None
         else:
             print("Error connecting engine {}".format(engine_name))
@@ -2973,8 +2979,10 @@ class masking():
             src_user_name = userobj['userName']
             print_debug("User = {},{}".format(src_user_id, src_user_name))
             if src_user_name != 'admin' and src_user_name != self.username:
+                print_debug("User Admin = {}".format(userobj['isAdmin']))
                 if userobj['isAdmin']:
                     if self.includeadmin:
+                        print_debug("self.includeadmin = {}".format(self.includeadmin))
                         print_debug("Converting {} to non-admin".format(src_user_name))
                         userobj['isAdmin'] = False
                         userobj['nonAdminProperties'] = { "roleId": 1,"environmentIds": []}
@@ -2991,7 +2999,8 @@ class masking():
                             print(" User {} deleted successfully.".format(src_user_name))
                             # print(" ")
                     else:
-                        print_debug("Skipping admin user {} as per flag includeadmin={}".format(self.includeadmin))
+                        print_debug("self.includeadmin = {}".format(self.includeadmin))
+                        print_debug("Skipping admin user {} as per delete adminflag: {}".format(src_user_name,self.includeadmin ))
                 else:
                     delapicall = "users/{}".format(src_user_id)
                     delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)

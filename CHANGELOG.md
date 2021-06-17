@@ -102,4 +102,4 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [2.0.4-rc2] - 2021-10-05
 - Bugfix  : Sync single environment with different name
 - Feature : Added feature to exclude/include admin user in cleanup. Default leave admin users as it is.
-- Change  : Disabled connector test bydefualt after sync. It can be done seperately
+- Change  : Disabled connector test by default after sync. It can be done seperately
