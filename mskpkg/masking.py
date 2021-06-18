@@ -110,6 +110,8 @@ class masking():
             self.protocol = "http"
         if "backup_dir" in kwargs.keys():
             self.backup_dir = kwargs['backup_dir']
+        if "includeadmin" in kwargs.keys():
+            self.includeadmin = kwargs['includeadmin']            
         self.outputdir = os.path.join(self.scriptdir, 'output')
         self.outputfilename = 'output.txt'
         self.report_output = os.path.join(self.scriptdir, 'output', self.outputfilename)
@@ -1165,9 +1167,9 @@ class masking():
                                                                                envname['environmentName'],
                                                                                engine_name,
                                                                                latestexecid['status'],
-                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'] if 'rowsMasked' in latestexecid.keys() else '0',
+                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'] if 'rowsTotal' in latestexecid.keys() else '0',
+                                                                               self.extract_start_or_submit_datetime(latestexecid),
                                                                                engine['poolname']
                                                                                ))
                                         fe.close()
@@ -1179,18 +1181,25 @@ class masking():
                                     if latestexecid['status'] == latestexecid['status']:
                                         fe.write(
                                             "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(joblist['maskingJobId'],
-                                                                               joblist['jobName'],
-                                                                               joblist['maxMemory'],
-                                                                               '0',
-                                                                               envname['environmentId'],
-                                                                               envname['environmentName'],
-                                                                               engine_name,
-                                                                               latestexecid['status'],
-                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsMasked'],
-                                                                               "-" if latestexecid['status'] == "QUEUED" else latestexecid['rowsTotal'],
-                                                                               latestexecid['submitTime'] if latestexecid['status'] == "QUEUED" else latestexecid['startTime'] if latestexecid['status'] == "RUNNING" else latestexecid['endTime'],
-                                                                               engine['poolname']
-                                                                               ))
+                                                                                           joblist['jobName'],
+                                                                                           joblist['maxMemory'],
+                                                                                           '0',
+                                                                                           envname['environmentId'],
+                                                                                           envname['environmentName'],
+                                                                                           engine_name,
+                                                                                           latestexecid['status'],
+                                                                                           "-" if latestexecid[
+                                                                                                      'status'] == "QUEUED" else
+                                                                                           latestexecid[
+                                                                                               'rowsMasked'] if 'rowsMasked' in latestexecid.keys() else '0',
+                                                                                           "-" if latestexecid[
+                                                                                                      'status'] == "QUEUED" else
+                                                                                           latestexecid[
+                                                                                               'rowsTotal'] if 'rowsTotal' in latestexecid.keys() else '0',
+                                                                                           self.extract_start_or_submit_datetime(
+                                                                                               latestexecid),
+                                                                                           engine['poolname']
+                                                                                           ))
                                         fe.close()
             else:
                 print_debug("Engine not from requested pool : {}, Poolname: {}".format(engine, engine['poolname']))
@@ -1357,6 +1366,8 @@ class masking():
         tgtapikey = self.get_auth_key(tgt_engine_name)
         print_debug("tgtapikey={}".format(tgtapikey))
 
+        tgt_env_not_exists = False
+
         if srcapikey is not None and tgtapikey is not None:
             if globalobjsync:
                 self.sync_globalobj()
@@ -1371,15 +1382,16 @@ class masking():
 
                 try:
                     tgt_env_id = self.find_env_id(tgt_env_name, tgt_engine_name)
-                    if tgt_env_id is None:
-                        print(" Agent will create new environment {}".format(tgt_env_name))
-                        print(" ")
                 except:
+                    tgt_env_not_exists = True
                     print(
-                        "Error: Unable to pull target env id for environment {}. Please check engine and environment name".format(
-                            tgt_env_name))
-
-
+                        "Warning: Unable to pull target env id for environment {}. Assuming environment does not exists".format(
+                            tgt_env_name))              
+                if tgt_env_id is None:
+                    tgt_env_not_exists = True
+                    print(" Agent will create new environment {}".format(tgt_env_name))
+                    print(" ")
+            
             # Create dummy app to handle on the fly masking job/env
             cr_app_response = self.create_application(tgt_engine_name, self.src_dummy_conn_app)
             src_dummy_conn_app_id = cr_app_response['applicationId']
@@ -1388,7 +1400,7 @@ class masking():
             cr_env_response = self.create_environment(tgt_engine_name, src_dummy_conn_app_id, self.src_dummy_conn_env, "MASK")
             src_dummy_conn_env_id = cr_env_response['environmentId']
 
-            print_debug("Source Env name = {}, Source Env purpose = {}, Source App name = {}, Source Env Id = {}, Source App Id = {}".format(self.src_dummy_conn_env, "MASK", self.src_dummy_conn_app,src_dummy_conn_env_id,src_dummy_conn_app_id))
+            print_debug("Source Common OTF Env Id = {}, Source Common OTF App Id = {}".format(src_dummy_conn_env_id,src_dummy_conn_app_id))
             print(" ")
             #        
 
@@ -1413,21 +1425,40 @@ class masking():
                     #print_debug(src_engine_name, srcapikey, srcapicall, envdef, port=80)
                     srcapiresponse = self.post_api_response1(src_engine_name, srcapikey, srcapicall, envdef, port=80)
                     #print_debug("srcapiresponse={}".format(srcapiresponse))
+                    
+                    if sync_scope == "ENV":
+                        if tgt_env_not_exists:
+                            print_debug("In if tgt_env_not_exists : {}".format(tgt_env_not_exists))
+                            cr_app_response = self.create_application(tgt_engine_name, src_app_name)
+                            tgt_app_id = cr_app_response['applicationId']
+                        else:
+                            print_debug("In else tgt_env_not_exists : {}".format(tgt_env_not_exists))
+                            tgt_env_id = self.find_env_id(tgt_env_name, tgt_engine_name)
+                            tgt_app_id = self.find_appid_of_envid(tgt_env_id, tgt_engine_name)
+                    elif sync_scope == "ENGINE":
+                        cr_app_response = self.create_application(tgt_engine_name, src_app_name)
+                        tgt_app_id = cr_app_response['applicationId']
+                        tgt_env_name = src_env_name
+                    else:
+                        cr_app_response = self.create_application(tgt_engine_name, src_app_name)
+                        tgt_app_id = cr_app_response['applicationId']
 
-                    cr_app_response = self.create_application(tgt_engine_name, src_app_name)
-                    tgt_app_id = cr_app_response['applicationId']
-
-                    cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, src_env_name, src_env_purpose)
-                    tgt_env_id = cr_env_response['environmentId']
+                    if sync_scope == "ENV":
+                        cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, tgt_env_name, src_env_purpose)
+                        tgt_env_id = cr_env_response['environmentId']
+                    else:
+                        cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, tgt_env_name, src_env_purpose)
+                        tgt_env_id = cr_env_response['environmentId']                        
                     
                     print_debug("Target Env Id = {}, Target App Id = {}".format(tgt_env_id, tgt_app_id))
 
                     tgtapicall = "import?force_overwrite=true&environment_id={}&source_environment_id={}".format(tgt_env_id,src_dummy_conn_env_id)
                     tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80)
+
                     if tgtapiresponse is None:
-                         print(" Environment {} sync failed.".format(src_env_name))
+                         print(" Environment {} sync failed.".format(tgt_env_name))
                     else:            
-                        print(" Environment {} synced successfully. Please update password for connectors in this environment using GUI / API".format(src_env_name))
+                        print(" Environment {} synced successfully. Please update password for connectors in this environment using GUI / API".format(tgt_env_name))
                     print(" ")
 
                     if sync_scope == "ENV":
@@ -1466,9 +1497,10 @@ class masking():
             self.del_app_byid(tgt_engine_name, dummy_conn_app_id, None)
             print(" ")
 
-        conn_type_list = ["database", "file", "mainframe-dataset"]
-        for conn_type in conn_type_list:
-            self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)        
+        # Commented as it takes time. It can be tested separately
+        # conn_type_list = ["database", "file", "mainframe-dataset"]
+        # for conn_type in conn_type_list:
+        #     self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)
 
     def validate_msk_eng_connection(self, msk_engine_name):
         mskapikey = self.get_auth_key(msk_engine_name)
@@ -1522,9 +1554,10 @@ class masking():
         if self.delextra:
             self.delete_extra_objects()
 
-        conn_type_list = ["database", "file", "mainframe-dataset"]
-        for conn_type in conn_type_list:
-            self.test_connectors(tgt_engine_name, conn_type, sync_scope, None)
+        # Commeneted this functionality as it takes time. It can be tested separately
+        # conn_type_list = ["database", "file", "mainframe-dataset"]
+        # for conn_type in conn_type_list:
+        #     self.test_connectors(tgt_engine_name, conn_type, sync_scope, None)
 
     def test_all_connectors(self):
         tgt_engine_name = self.mskengname
@@ -1565,9 +1598,10 @@ class masking():
             self.del_app_byid(tgt_engine_name, dummy_conn_app_id, None)
             print(" ")
 
-        conn_type_list = ["database", "file", "mainframe-dataset"]
-        for conn_type in conn_type_list:
-            self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)
+        # Commented as it takes time. It can be tested separately
+        # conn_type_list = ["database", "file", "mainframe-dataset"]
+        # for conn_type in conn_type_list:
+        #     self.test_connectors(tgt_engine_name, conn_type, sync_scope, tgt_env_name)
 
     def delete_extra_objects(self):        
         src_engine_name = self.srcmskengname
@@ -2016,11 +2050,15 @@ class masking():
                 userId = user_rec['userId']
                 userName = user_rec['userName']
                 userNameNoSpace = userName.replace(" ", "_")
-                isAdmin = user_rec['isAdmin']
-                user_rec['password'] = "Delphix-123"
 
-                print_debug("User payload: {}".format(user_rec))
-                if userName != "admin":
+                if userName != 'admin' and userName != self.username:
+                    isAdmin = user_rec['isAdmin']
+                    user_rec['password'] = "Delphix-123"
+                    print_debug("User payload: {}".format(user_rec))
+                else:
+                    print(" Username is : {}. Default admin OR self user are ignored in sync operation".format(userName))
+
+                if userName != "admin" and userName != self.username:
                     print_debug(" User {}".format(userName))
                     if isAdmin:
                         print_debug("User role : Admin")
@@ -2040,9 +2078,6 @@ class masking():
                             tgtenvlist.append(tgtenvid)
                         user_rec['nonAdminProperties']['environmentIds'] = tgtenvlist
                         self.restore_userobj(userName, tgtapikey, tgt_engine_name, user_rec, None)
-
-                else:
-                    print(" Ignore User {}".format(userName))
         else:
             print(" Error connecting source engine {}".format(src_engine_name))
 
@@ -2245,14 +2280,157 @@ class masking():
                 print(" ")
 
             sync_scope = "ENGINE"
-            conn_type_list = ["database", "file", "mainframe-dataset"]
-            for conn_type in conn_type_list:
-                self.test_connectors(tgt_engine_name, conn_type, sync_scope, None)
+            # Commented as it takes time. It can be tested separately
+            # conn_type_list = ["database", "file", "mainframe-dataset"]
+            # for conn_type in conn_type_list:
+            #     self.test_connectors(tgt_engine_name, conn_type, sync_scope, None)
 
             print(" Restore Engine {} - complete".format(tgt_engine_name))
             print(" ")
         else:
             print (" Error connecting source engine {}".format(tgt_engine_name))
+
+    def offline_restore_env(self):
+        tgt_engine_name = self.mskengname
+        tgtapikey = self.get_auth_key(tgt_engine_name)
+
+        print_debug("tgtapikey={}".format(tgtapikey))
+        if tgtapikey is not None:
+            backup_dir = self.backup_dir
+            print_debug("backup_dir: {}".format(backup_dir))
+
+            globalobj_bkp_dict_file_fullpath = "{}/{}/{}".format(backup_dir, "globalobjects",
+                                                                 "backup_GLOBAL_OBJECT.dat")
+            with open(globalobj_bkp_dict_file_fullpath, 'rb') as f1:
+                globalobj_bkp_dict = pickle.load(f1)
+                syncable_object_type = globalobj_bkp_dict['syncable_object_type']
+                srcapiresponse = globalobj_bkp_dict['srcapiresponse']
+                self.restore_globalobj(syncable_object_type, tgtapikey, tgt_engine_name, srcapiresponse, backup_dir)
+                print(" ")
+
+            syncobj_bkp_dict_file_arr = os.listdir("{}/globalobjects".format(backup_dir))
+            print_debug("syncobj_bkp_dict_file_arr: {}".format(syncobj_bkp_dict_file_arr))
+            for syncobj_bkp_dict_file in syncobj_bkp_dict_file_arr:
+                if syncobj_bkp_dict_file != "backup_GLOBAL_OBJECT.dat":
+                    # Global Object is already done so skipped. Looking for mount, fileformat etc
+                    print_debug("syncobj_bkp_dict_file: {}".format(syncobj_bkp_dict_file))
+                    syncobj_bkp_dict_file_fullpath = "{}/{}/{}".format(backup_dir, "globalobjects",
+                                                                       syncobj_bkp_dict_file)
+                    print_debug("syncobj_bkp_dict_file_fullpath: {}".format(syncobj_bkp_dict_file_fullpath))
+                    with open(syncobj_bkp_dict_file_fullpath, 'rb') as f1:
+                        syncobj_bkp_dict = pickle.load(f1)
+                    # print_debug(syncobj_bkp_dict) # It will be huge
+                    syncable_object_type = syncobj_bkp_dict['syncable_object_type']
+                    srcapiresponse = syncobj_bkp_dict['srcapiresponse']
+                    self.restore_globalobj(syncable_object_type, tgtapikey, tgt_engine_name, srcapiresponse, backup_dir)
+                    print(" ")
+
+            # Create dummy app to handle on the fly masking job/env
+            cr_app_response = self.create_application(tgt_engine_name, self.src_dummy_conn_app)
+            src_dummy_conn_app_id = cr_app_response['applicationId']
+
+            # Create dummy env to handle on the fly masking job/env
+            cr_env_response = self.create_environment(tgt_engine_name, src_dummy_conn_app_id, self.src_dummy_conn_env,
+                                                      "MASK")
+            src_dummy_conn_env_id = cr_env_response['environmentId']
+
+            print_debug("Target Env Id = {}, Target App Id = {}".format(src_dummy_conn_app_id, src_dummy_conn_env_id))
+
+            env_bkp_dict_file_arr = os.listdir("{}/environments".format(backup_dir))
+            print_debug("env_bkp_dict_file_arr: {}".format(env_bkp_dict_file_arr))
+            for env_bkp_dict_file in env_bkp_dict_file_arr:
+                print_debug("env_bkp_dict_file: {}".format(env_bkp_dict_file))
+                env_bkp_dict_file_fullpath = "{}/{}/{}".format(backup_dir, "environments", env_bkp_dict_file)
+                print_debug("env_bkp_dict_file_fullpath: {}".format(env_bkp_dict_file_fullpath))
+                with open(env_bkp_dict_file_fullpath, 'rb') as f1:
+                    env_bkp_dict = pickle.load(f1)
+                print_debug(env_bkp_dict)
+
+                src_app_id = env_bkp_dict['src_app_id']
+                src_app_name = env_bkp_dict['src_app_name']
+                src_env_id = env_bkp_dict['src_env_id']
+                src_env_name = env_bkp_dict['src_env_name']
+                src_env_purpose = env_bkp_dict['src_env_purpose']
+                srcapiresponse = env_bkp_dict['srcapiresponse']
+
+                if src_env_name == self.envname:
+                    if src_env_name == self.src_dummy_conn_env:
+                        tgt_app_id = src_dummy_conn_app_id
+                        tgt_env_id = src_dummy_conn_env_id
+                    else:
+                        cr_app_response = self.create_application(tgt_engine_name, src_app_name)
+                        tgt_app_id = cr_app_response['applicationId']
+
+                        cr_env_response = self.create_environment(tgt_engine_name, tgt_app_id, src_env_name,
+                                                                  src_env_purpose)
+                        tgt_env_id = cr_env_response['environmentId']
+
+                    print_debug("Target Env Id = {}, Target App Id = {}".format(tgt_env_id, tgt_app_id))
+
+                    if src_env_name == self.src_dummy_conn_env:
+                        # Handle eror : {"errorMessage":"Source environment cannot be the same as environment"}
+                        tgtapicall = "import?force_overwrite=true&environment_id={}".format(tgt_env_id)
+                    else:
+                        tgtapicall = "import?force_overwrite=true&environment_id={}&source_environment_id={}".format(
+                            tgt_env_id, src_dummy_conn_env_id)
+
+                    tgtapiresponse = self.post_api_response1(tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse,
+                                                             port=80)
+                    if tgtapiresponse is None:
+                        print(" Environment {} restore failed.".format(src_env_name))
+                    else:
+                        print(
+                            " Environment {} restored successfully. Please update password for connectors in this environment using GUI / API".format(
+                                src_env_name))
+
+                    print(" Restored environment {}".format(env_bkp_dict['src_env_name']))
+                    print(" ")
+
+            # Restore OTF_JOB_MAPPING
+            otf_job_mapping_file = "{}/mappings/backup_otf_job_mapping.dat".format(backup_dir)
+            with open(otf_job_mapping_file, 'rb') as otf1:
+                otf_job_mapping = pickle.load(otf1)
+            print_debug(" Job Env Mapping :{}".format(otf_job_mapping))
+
+            for otf_job in otf_job_mapping:
+                print_debug(otf_job)
+                jobname = otf_job['otf_jobname']
+                src_env_name = otf_job['src_env_name']
+                srcconn_name = otf_job['srcconnectorName']
+                conn_type = otf_job['srcconnectortype']
+                srcconnectorEnvname = otf_job['srcconnectorEnvname']
+
+                if src_env_name == self.envname:
+                    jobid = self.find_job_id(jobname, src_env_name, tgt_engine_name)
+                    print_debug("Before upd_job_connector : {},{},{},{},{}".format(jobid, srcconn_name, conn_type,
+                                                                                   srcconnectorEnvname, tgt_engine_name))
+                    self.upd_job_connector(jobid, srcconn_name, conn_type, srcconnectorEnvname, tgt_engine_name,
+                                           srcconnectorEnvname,
+                                           None)
+            print(" ")
+
+            del_tmp_env = 0
+            if del_tmp_env == 0:
+                print(" Delete temporary environment {} created for OTF jobs".format(self.src_dummy_conn_env))
+                dummy_conn_env_id = self.find_env_id(self.src_dummy_conn_env, tgt_engine_name)
+                self.del_env_byid(tgt_engine_name, dummy_conn_env_id, None)
+
+                print(" ")
+                print(" Delete temporary application {} created for OTF jobs".format(self.src_dummy_conn_app))
+                dummy_conn_app_id = self.find_app_id(self.src_dummy_conn_app, tgt_engine_name)
+                self.del_app_byid(tgt_engine_name, dummy_conn_app_id, None)
+                print(" ")
+
+            sync_scope = "ENV"
+            # Commented as it takes time. It can be tested separately
+            # conn_type_list = ["database", "file", "mainframe-dataset"]
+            # for conn_type in conn_type_list:
+            #     self.test_connectors(tgt_engine_name, conn_type, sync_scope, self.envname)
+
+            print(" Restore Environment {} - complete".format(tgt_engine_name))
+            print(" ")
+        else:
+            print(" Error connecting source engine {}".format(tgt_engine_name))
 
     def cleanup_eng(self):
         src_engine_name = self.mskengname       
@@ -2509,8 +2687,10 @@ class masking():
                     i = 1
                     #print_debug("env id = {}".format(envname['environmentId']))
                     return envname['environmentId']
+                    break
+
             if i == 0:
-                print(" Error: unable to find env id for environment {}".format(paramenvname))
+                print(" Unable to find env id for environment {}".format(paramenvname))
                 return None
         else:
             print("Error connecting engine {}".format(engine_name))
@@ -2799,22 +2979,40 @@ class masking():
             src_user_name = userobj['userName']
             print_debug("User = {},{}".format(src_user_id, src_user_name))
             if src_user_name != 'admin' and src_user_name != self.username:
+                print_debug("User Admin = {}".format(userobj['isAdmin']))
                 if userobj['isAdmin']:
-                    print_debug("Converting {} to non-admin".format(src_user_name))
-                    userobj['isAdmin'] = False
-                    userobj['nonAdminProperties'] = { "roleId": 1,"environmentIds": []}
-                    updapicall = "users/{}".format(src_user_id)
-                    updapiresponse = self.put_api_response(src_engine_name, srcapikey, updapicall, userobj)
-                    print_debug("put updapiresponse = {}".format(updapiresponse))
+                    if self.includeadmin:
+                        print_debug("self.includeadmin = {}".format(self.includeadmin))
+                        print_debug("Converting {} to non-admin".format(src_user_name))
+                        userobj['isAdmin'] = False
+                        userobj['nonAdminProperties'] = { "roleId": 1,"environmentIds": []}
+                        updapicall = "users/{}".format(src_user_id)
+                        updapiresponse = self.put_api_response(src_engine_name, srcapikey, updapicall, userobj)
+                        print_debug("put updapiresponse = {}".format(updapiresponse))
 
-                delapicall = "users/{}".format(src_user_id)
-                delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
-                if delapiresponse is None:
-                    print(" Unable to delete User {}.".format(src_user_name))
-                    i = 1
+                        delapicall = "users/{}".format(src_user_id)
+                        delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                        if delapiresponse is None:
+                            print(" Unable to delete User {}.".format(src_user_name))
+                            i = 1
+                        else:
+                            print(" User {} deleted successfully.".format(src_user_name))
+                            # print(" ")
+                    else:
+                        print_debug("self.includeadmin = {}".format(self.includeadmin))
+                        print_debug("Skipping admin user {} as per delete adminflag: {}".format(src_user_name,self.includeadmin ))
                 else:
-                    print(" User {} deleted successfully.".format(src_user_name))
-                    # print(" ")
+                    delapicall = "users/{}".format(src_user_id)
+                    delapiresponse = self.del_api_response(src_engine_name, srcapikey, delapicall)
+                    if delapiresponse is None:
+                        print(" Unable to delete User {}.".format(src_user_name))
+                        i = 1
+                    else:
+                        print(" User {} deleted successfully.".format(src_user_name))
+                        # print(" ")
+            else:
+                print_debug("UserId = {} , Username = {} - Default user admin OR self user executing cleanup cannot be deleted.".format(src_user_id, src_user_name))
+
 
     def del_fileFormats(self,src_engine_name,srcapikey):
         if srcapikey is None:
@@ -2970,7 +3168,19 @@ class masking():
             
         else:
             print(" Error connecting source engine {}".format(engine_name))
-       
+
+    def extract_start_or_submit_datetime(self,latestexecid):
+        returndate = ""
+        if latestexecid['status'] == "QUEUED":
+            returndate = latestexecid['submitTime']
+        elif latestexecid['status'] == "RUNNING":
+            returndate = latestexecid['startTime']
+        elif latestexecid['status'] == "CANCELLED":
+            returndate = latestexecid['startTime'] if 'startTime' in latestexecid.keys() else latestexecid['submitTime']
+        else:
+            returndate = latestexecid['endTime']
+        return returndate
+
     # @track
     def list_eng_usage(self):
         if not self.mock:
