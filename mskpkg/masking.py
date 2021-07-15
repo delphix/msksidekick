@@ -912,7 +912,7 @@ class masking:
             print(
                 "Unable to reach any engines. Please check connections to engine in pool"
             )
-            sys.exit()
+            sys.exit(1)
 
         print_debug("engine_list:\n{}".format(engine_list))
         print_debug("enginelist :\n{}".format(enginelist))
@@ -1932,7 +1932,7 @@ class masking:
                         )
                     )
             print("Unable to connect any engine in engine pool")
-            sys.exit()
+            sys.exit(1)
         else:
             print_debug(
                 "File {} successfully generated".format(self.jobexeclistfile)
@@ -1944,6 +1944,7 @@ class masking:
             )
 
     def pull_currjoblist(self):
+        connection_success = 0
         processid = os.getpid()
         bannertext = banner()
         self.jobexeclistfile = "{}.{}".format(self.jobexeclistfile, processid)
@@ -1984,6 +1985,7 @@ class masking:
                 apikey = self.get_auth_key(engine_name)
                 print_debug("apikey : {}".format(apikey))
                 if apikey is not None:
+                    connection_success = connection_success + 1
                     apicall = "environments?page_number=1&page_size=999"
                     envlist_response = self.get_api_response(
                         engine_name, apikey, apicall
@@ -2102,9 +2104,14 @@ class masking:
                         engine, engine["poolname"]
                     )
                 )
-        print_debug(
-            "File {} successfully generated".format(self.jobexeclistfile)
-        )
+
+        if connection_success > 0:
+            print_debug(
+                "File {} successfully generated".format(self.jobexeclistfile)
+            )
+        else:
+            print("Unable to connect any engines")
+            sys.exit(1)
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         print(
             (
@@ -2695,7 +2702,7 @@ class masking:
                     msk_engine_name
                 )
             )
-            sys.exit()
+            sys.exit(1)
         else:
             return mskapikey
 
@@ -4495,6 +4502,7 @@ class masking:
 
         else:
             print(" Error connecting source engine {}".format(src_engine_name))
+            sys.exit(1)
 
     def gen_otf_job_mappings(
         self, src_engine_name, src_env_name, sync_scope=None, jobname=None
