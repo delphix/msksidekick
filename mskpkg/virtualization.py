@@ -50,7 +50,12 @@ class virtualization:
         print_debug("New protocol = {}, port ={}".format(protocol, port))
         apiversion = {
             "type": "APISession",
-            "version": {"type": "APIVersion", "major": 1, "minor": 9, "micro": 3},
+            "version": {
+                "type": "APIVersion",
+                "major": 1,
+                "minor": 9,
+                "micro": 3,
+            },
         }
         api_url_base = "{}://{}:{}/resources/json/delphix/".format(
             protocol, ip_address, port
@@ -69,17 +74,25 @@ class virtualization:
                     return cookies
                 else:
                     print_debug(
-                        "Engine {} : Error connecting engine".format(ip_address)
+                        "Engine {} : Error connecting engine".format(
+                            ip_address
+                        )
                     )
                     return None
             else:
-                print_debug("Engine {} : Error connecting engine".format(ip_address))
+                print_debug(
+                    "Engine {} : Error connecting engine".format(ip_address)
+                )
                 return None
         except:
-            print_debug("Engine {} : Error connecting engine".format(ip_address))
+            print_debug(
+                "Engine {} : Error connecting engine".format(ip_address)
+            )
             return None
 
-    def login_api_session(self, ip_address, cookies, apicall, payload, port=80):
+    def login_api_session(
+        self, ip_address, cookies, apicall, payload, port=80
+    ):
         protocol = self.protocol
         print_debug("protocol = {}, port ={}".format(protocol, port))
         if protocol == "https":
@@ -92,7 +105,11 @@ class virtualization:
         api_url = "{0}{1}".format(api_url_base, apicall)
         try:
             response = requests.post(
-                api_url, cookies=cookies, headers=headers, json=payload, verify=False
+                api_url,
+                cookies=cookies,
+                headers=headers,
+                json=payload,
+                verify=False,
             )
             if response.status_code == 200:
                 data = json.loads(response.content.decode("utf-8"))
@@ -100,10 +117,14 @@ class virtualization:
                     cookies = {"JSESSIONID": response.cookies["JSESSIONID"]}
                     return cookies
                 else:
-                    print_debug("Engine {} : Error logging engine".format(ip_address))
+                    print_debug(
+                        "Engine {} : Error logging engine".format(ip_address)
+                    )
                     return None
             else:
-                print_debug("Engine {} : Error logging engine".format(ip_address))
+                print_debug(
+                    "Engine {} : Error logging engine".format(ip_address)
+                )
                 return None
         except:
             print_debug("Engine {} : Error logging engine".format(ip_address))
@@ -129,16 +150,22 @@ class virtualization:
                 if data["status"] == "OK":
                     return data["result"]
                 else:
-                    print_debug("Engine {} : Error fetching data".format(ip_address))
+                    print_debug(
+                        "Engine {} : Error fetching data".format(ip_address)
+                    )
                     return None
             else:
-                print_debug("Engine {} : Error fetching data".format(ip_address))
+                print_debug(
+                    "Engine {} : Error fetching data".format(ip_address)
+                )
                 return None
         except:
             print_debug("Engine {} : Error fetching data".format(ip_address))
             return None
 
-    def post_api_response(self, ip_address, cookies, apicall, payload, mrthod, port=80):
+    def post_api_response(
+        self, ip_address, cookies, apicall, payload, mrthod, port=80
+    ):
         protocol = self.protocol
         print_debug("protocol = {}, port ={}".format(protocol, port))
         if protocol == "https":
@@ -151,17 +178,25 @@ class virtualization:
         api_url = "{0}{1}".format(api_url_base, apicall)
         try:
             response = requests.post(
-                api_url, cookies=cookies, headers=headers, json=payload, verify=False
+                api_url,
+                cookies=cookies,
+                headers=headers,
+                json=payload,
+                verify=False,
             )
             if response.status_code == 200:
                 data = json.loads(response.content.decode("utf-8"))
                 if data["status"] == "OK":
                     return data["result"]
                 else:
-                    print_debug("Engine {} : Error fetching data".format(ip_address))
+                    print_debug(
+                        "Engine {} : Error fetching data".format(ip_address)
+                    )
                     return None
             else:
-                print_debug("Engine {} : Error fetching data".format(ip_address))
+                print_debug(
+                    "Engine {} : Error fetching data".format(ip_address)
+                )
                 return None
         except:
             print_debug("Engine {} : Error fetching data".format(ip_address))
@@ -218,7 +253,9 @@ class virtualization:
                     f = open(self.enginecpulistfile, "a")
                     f.write("{},{}\n".format(dxtoolkit_eng_ip, cpuvalue))
                     f.close()
-                    print_debug("Engine {} : pulled cpu data - OK".format(engine))
+                    print_debug(
+                        "Engine {} : pulled cpu data - OK".format(engine)
+                    )
                 else:
                     print("Engine {} : Unable to pull cpu data".format(engine))
                     f = open(self.enginecpulistfile, "a")
@@ -275,7 +312,9 @@ class virtualization:
                 i = i + 1
                 # self.get_cpu_for_engine(config_file_path,engine)
             else:
-                print_debug("Engine {} not in pool. skipping ...".format(engine))
+                print_debug(
+                    "Engine {} not in pool. skipping ...".format(engine)
+                )
 
         for threadkeys in threadlist.keys():
             print_debug("threadkey = {}".format(threadkeys))
@@ -283,14 +322,18 @@ class virtualization:
 
         # print("CPU data collection done in {0} Minutes".format((time.time() - t) / 60))
         print_debug(
-            "CPU data collection done in {0} Minutes".format((time.time() - t) / 60)
+            "CPU data collection done in {0} Minutes".format(
+                (time.time() - t) / 60
+            )
         )
 
     def get_cpu_raw_data(self, engine):
         # engine = {'ip_address' : 'ajaydlpx6pri.dcenter.delphix.com' , 'username' : 'admin' , 'password' : 'delphix'}
         cookies = self.create_api_session(engine["ip_address"], port=80)
         if cookies is not None:
-            print_debug("Engine {} : Session created".format(engine["ip_address"]))
+            print_debug(
+                "Engine {} : Session created".format(engine["ip_address"])
+            )
             apicall = "login"
             payload = {
                 "type": "LoginRequest",
@@ -301,7 +344,9 @@ class virtualization:
                 engine["ip_address"], cookies, apicall, payload, port=80
             )
             if logincookies is not None:
-                print_debug("Engine {} : Login Successful".format(engine["ip_address"]))
+                print_debug(
+                    "Engine {} : Login Successful".format(engine["ip_address"])
+                )
                 apicall = "analytics"
                 analytics_list = self.get_api_response(
                     engine["ip_address"], logincookies, apicall, port=80
@@ -341,7 +386,10 @@ class virtualization:
                                     end_date_isostr,
                                 )
                                 cpu_analytics_data = self.get_api_response(
-                                    engine["ip_address"], logincookies, apicall, port=80
+                                    engine["ip_address"],
+                                    logincookies,
+                                    apicall,
+                                    port=80,
                                 )
                                 if cpu_analytics_data == []:
                                     print_debug(
@@ -350,31 +398,48 @@ class virtualization:
                                         )
                                     )
                                 else:
-                                    for row in cpu_analytics_data["datapointStreams"][
-                                        0
-                                    ]["datapoints"]:
+                                    for row in cpu_analytics_data[
+                                        "datapointStreams"
+                                    ][0]["datapoints"]:
                                         ts = (
                                             row["timestamp"]
                                             .split(".")[0]
                                             .replace("T", " ")
                                         )
-                                        idle = 0 if row["idle"] <= 0 else row["idle"]
-                                        user = 0 if row["user"] <= 0 else row["user"]
+                                        idle = (
+                                            0
+                                            if row["idle"] <= 0
+                                            else row["idle"]
+                                        )
+                                        user = (
+                                            0
+                                            if row["user"] <= 0
+                                            else row["user"]
+                                        )
                                         kernel = (
-                                            1 if row["kernel"] <= 0 else row["kernel"]
+                                            1
+                                            if row["kernel"] <= 0
+                                            else row["kernel"]
                                         )
                                         ttl_cpu = idle + kernel + user
                                         util = (
                                             0
                                             if (ttl_cpu == 0)
-                                            else (((user + kernel) / (ttl_cpu)) * 100)
+                                            else (
+                                                ((user + kernel) / (ttl_cpu))
+                                                * 100
+                                            )
                                         )
-                                        cpu_data_dict = {"ts": ts, "cpu": float(util)}
+                                        cpu_data_dict = {
+                                            "ts": ts,
+                                            "cpu": float(util),
+                                        }
                                         cpu_data_list.append(cpu_data_dict)
 
                                     # print_debug(round(mean(k['cpu'] for k in cpu_data_list),2))
                                     cpu_usage = round(
-                                        mean(k["cpu"] for k in cpu_data_list), 2
+                                        mean(k["cpu"] for k in cpu_data_list),
+                                        2,
                                     )
                                     f = open(self.enginecpulistfile, "a")
                                     f.write(
@@ -397,10 +462,14 @@ class virtualization:
                                 return
                 else:
                     print_debug(
-                        "Engine {} : Unable to pull data".format(engine["ip_address"])
+                        "Engine {} : Unable to pull data".format(
+                            engine["ip_address"]
+                        )
                     )
             else:
-                print_debug("Engine {} : Unable to login".format(engine["ip_address"]))
+                print_debug(
+                    "Engine {} : Unable to login".format(engine["ip_address"])
+                )
 
 
 # GET: http://dlpx-5381-mds-1048-d2b9cd33.dc4.delphix.com:80/resources/json/delphix/service/time

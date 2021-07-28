@@ -3,6 +3,7 @@ import csv
 import json
 import os
 import sys
+import traceback
 import datetime
 import pickle
 import time
@@ -687,7 +688,6 @@ class masking:
                 return None
         except:
             print_debug("Error connecting engine {}".format(ip_address))
-            # sys.exit()
             return None
 
     def get_api_response(self, ip_address, api_token, apicall, port=80):
@@ -903,7 +903,9 @@ class masking:
                         "ip_address": engine["ip_address"],
                         "cpu": "20",
                     }
-                    print_debug("Engine not found in enginecpu_namelist. Assigning default 20% CPU usage")
+                    print_debug(
+                        "Engine not found in enginecpu_namelist. Assigning default 20% CPU usage"
+                    )
                     enginecpu_list.append(tmpengip)
             else:
                 nonreach_enginelist.append(engine_list_dict)
@@ -1349,9 +1351,15 @@ class masking:
                                 )
                                 sys.exit(1)
                         else:
+                            print_red_on_white = lambda x: cprint(
+                                x, "red", "on_white"
+                            )
                             print_red_on_white(
-                                " Job {} on Env {} is already running on engine {}. Please retry later".format(
-                                    self.jobname, self.envname, chk_status
+                                " Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
+                                    self.jobname,
+                                    self.envname,
+                                    engine_name,
+                                    chk_status,
                                 )
                             )
                             sys.exit(1)
@@ -1580,9 +1588,10 @@ class masking:
                         )
                         sys.exit(1)
                 else:
+                    print_red_on_white = lambda x: cprint(x, "red", "on_white")
                     print_red_on_white(
-                        " Job {} on Env {} is already running on engine {}. Please retry later".format(
-                            self.jobname, self.envname, chk_status
+                        " Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
+                            self.jobname, self.envname, engine_name, chk_status
                         )
                     )
             print(" ")
@@ -1931,8 +1940,10 @@ class masking:
                             " ", ind["ip_address"], ind["poolname"]
                         )
                     )
-            print("Unable to connect any engine in engine pool")
-            sys.exit(1)
+            print("ERROR: Unable to connect any engine in engine pool")
+            raise Exception(
+                "ERROR: Unable to connect any engine in engine pool"
+            )
         else:
             print_debug(
                 "File {} successfully generated".format(self.jobexeclistfile)
@@ -3104,12 +3115,11 @@ class masking:
             try:
                 os.makedirs(dirname)
             except:
-                print(
-                    "Unable to create directory {}. Please check permissions".format(
+                raise Exception(
+                    "ERROR: Unable to create directory {}. Please check permissions".format(
                         dirname
                     )
                 )
-                sys.exit(1)
 
     def cr_backup_dirs(self):
         backup_dir = self.backup_dir
@@ -3183,8 +3193,9 @@ class masking:
                     )
                 )
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            #print("ERROR: Error connecting source engine {}".format(src_engine_name))
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
+
 
     def bkp_roles(self, bkp_main_dir, srcapikey=None):
         role_mapping = {}
@@ -3443,8 +3454,8 @@ class masking:
             print(" ")
 
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            print("srcapikey={}".format(srcapikey))
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
 
     def restore_globalobj(
         self,

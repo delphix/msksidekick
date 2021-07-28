@@ -33,6 +33,7 @@
 import collections
 import os
 import sys
+import traceback
 
 import click
 import atexit
@@ -42,9 +43,9 @@ from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
-atexit.register(print, "Program exited successfully!")
+# atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.4-rc3"
+VERSION = "2.0.4-rc4"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
@@ -99,6 +100,21 @@ def print_debug_banner(txtmsg):
     print_debug(mybannera)
     print_debug(mybannerc)
     print_debug(" ")
+
+
+def print_exception_exit1():
+    message_String = "\nERROR: Exit Code:1\n"
+    type_, value_, traceback_ = sys.exc_info()
+    whole_message = traceback.format_exception(type_, value_, traceback_)
+    res = []
+    for sub in whole_message:
+        if "raise Exception" not in sub:
+            sub = sub.strip()
+            res.append(sub.replace("\n", ""))
+
+    message_String = message_String + "\n".join(res[-2:])
+    print(message_String, file=sys.stderr)
+    sys.exit(1)
 
 
 # Common Options
@@ -321,9 +337,7 @@ def pull_currjoblist(
         )
         mskai.pull_currjoblist()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # gen-dxtoolsconf
@@ -445,9 +459,7 @@ def sync_job(
         )
         mskai.sync_job()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # syncenv
@@ -543,9 +555,7 @@ def sync_env(
         )
         mskai.sync_env()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # synceng
@@ -642,9 +652,7 @@ def sync_eng(
         )
         mskai.sync_eng()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # sync_globalobj
@@ -722,9 +730,7 @@ def sync_globalobj(
         )
         mskai.sync_globalobj()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # cleanup-eng
@@ -786,9 +792,7 @@ def cleanup_eng(
         )
         mskai.cleanup_eng()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # runjob
@@ -912,9 +916,7 @@ def run_job(
             )
             sys.exit(1)
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
     try:
         print_debug(" ")
@@ -940,9 +942,8 @@ def run_job(
         print_debug(" ")
         print_debug(" ")
         print_debug(" ")
-    except:
-        print("Error in VE module")
-        sys.exit(1)
+    except Exception as e:
+        print_exception_exit1()
 
     print_debug_banner("Execute Job run module...")
     try:
@@ -959,9 +960,7 @@ def run_job(
         )
         mskai.run_job()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # test-connectors
@@ -1013,9 +1012,7 @@ def test_connectors(config, mskengname, username, password, protocol):
         )
         mskai.test_all_connectors()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # list_green_eng
@@ -1088,9 +1085,7 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
             mskai.pull_jobexeclist()
 
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
     try:
         print_debug(" ")
@@ -1124,9 +1119,7 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
         )
         mskai.list_eng_usage()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # offline_backup_eng
@@ -1186,9 +1179,7 @@ def offline_backup_eng(
         mskai.offline_backup_eng()
         sys.exit(0)
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 # offline_restore_eng
@@ -1247,9 +1238,7 @@ def offline_restore_eng(
         )
         mskai.offline_restore_eng()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)  
+        print_exception_exit1()
 
 
 # offline_restore_env
@@ -1317,9 +1306,7 @@ def offline_restore_env(
         )
         mskai.offline_restore_env()
     except Exception as e:
-        print("Error in MSK module")
-        print(str(e))
-        sys.exit(1)
+        print_exception_exit1()
 
 
 if __name__ == "__main__":
