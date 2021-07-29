@@ -708,6 +708,9 @@ class masking:
             return data
         else:
             print_debug(response.content.decode("utf-8"))
+            outputstring = response.content.decode("utf-8")
+            if "errorMessage" in outputstring:
+                print(outputstring, file=sys.stderr)
             return None
 
     def del_api_response(self, ip_address, api_token, apicall, port=80):
@@ -755,6 +758,9 @@ class masking:
             return data
         else:
             print_debug(response.content.decode("utf-8"))
+            outputstring = response.content.decode("utf-8")
+            if "errorMessage" in outputstring:
+                print(outputstring, file=sys.stderr)
             return None
 
     def put_api_response(self, ip_address, api_token, apicall, body, port=80):
@@ -819,6 +825,10 @@ class masking:
             return data
         else:
             print(" {}".format(response.content.decode("utf-8")))
+            print_debug(response.content.decode("utf-8"))
+            outputstring = response.content.decode("utf-8")
+            if "errorMessage" in outputstring:
+                print(outputstring, file=sys.stderr)
             return None
 
     def exec_job(self, ip_address, api_token, jobid):
@@ -3234,8 +3244,7 @@ class masking:
             print("Created mapping file for roles")
             print(" ")
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
 
     def bkp_users(self, bkp_main_dir, srcapikey):
         src_engine_name = self.mskengname
@@ -3265,8 +3274,7 @@ class masking:
                     pickle.dump(user_bkp_dict, fh)
                 print("Created backup of user {}".format(userName))
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
 
     def bkp_globalobj(self, bkp_main_dir, srcapikey=None):
         self.bkp_syncable_objects("GLOBAL_OBJECT", bkp_main_dir, srcapikey)
@@ -3366,8 +3374,7 @@ class masking:
             print("Created backup of otf_job_mapping")
 
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
 
     def offline_backup_eng(self):
         env_mapping = {}

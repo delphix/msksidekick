@@ -109,3 +109,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Feature : Added feature to exclude non admin user during engine sync (Default exclude non-admin users)
 - Feature : Reformatted code and reduced new connections to engine for every api call
 - Feature : Added exit codes 0 and 1
+
+## [2.0.4-rc4] - 2021-29-07
+- Feature : Added stderr to backup module when exit code is 1
