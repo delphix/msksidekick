@@ -2080,7 +2080,7 @@ class masking:
                                                 engine["poolname"],
                                             )
                                         )
-                                        fe.close()
+                                        #fe.close()
                                 else:
                                     print_debug("All Jobs")
                                     print_debug(latestexecid)
@@ -2120,7 +2120,8 @@ class masking:
                                                 engine["poolname"],
                                             )
                                         )
-                                        fe.close()
+                                        #fe.close()
+                            fe.close()
             else:
                 print_debug(
                     "Engine not from requested pool : {}, Poolname: {}".format(
@@ -2181,7 +2182,7 @@ class masking:
             os.rename(os.path.join(self.jobexeclistfile, ".tmp"), self.jobexeclistfile)
             os.remove(self.jobexeclistfile)
         except OSError:
-            print('{} File is still open.'.format(self.jobexeclistfile))
+            print_debug('{} File is still open.'.format(self.jobexeclistfile))
 
     def sync_globalobj(self):
         self.sync_syncable_objects("GLOBAL_OBJECT")
