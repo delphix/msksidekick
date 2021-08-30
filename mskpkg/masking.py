@@ -15,6 +15,7 @@ from csv import DictReader
 from sys import exit
 
 import requests
+import colorama
 from termcolor import colored, cprint
 
 import mskpkg.globals as globals
@@ -238,6 +239,7 @@ class masking:
             os.mkdir(self.outputdir)
             if self.config.debug:
                 print_debug("Created directory {}".format(self.outputdir))
+        colorama.init()
 
     def create_dictobj(self, filename):
         with open(filename, "r") as read_obj:

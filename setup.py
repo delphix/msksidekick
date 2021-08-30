@@ -9,7 +9,8 @@ setup(
 		'termcolor',
 		'requests',
         'psutil',
-        'statistics'
+        'statistics',
+        'colorama'
     ],
     entry_points='''
         [console_scripts]

@@ -12,3 +12,5 @@ requests==2.25.1
 statistics==1.0.3.5
 termcolor==1.1.0
 urllib3==1.26.3
+colorama~=0.4.4
+setuptools~=53.0.0
