@@ -2182,8 +2182,8 @@ class masking:
             os.rename(self.jobexeclistfile, os.path.join(self.jobexeclistfile, ".tmp"))
             os.rename(os.path.join(self.jobexeclistfile, ".tmp"), self.jobexeclistfile)
             os.remove(self.jobexeclistfile)
-        except OSError:
-            print_debug('{} File is still open.'.format(self.jobexeclistfile))
+        except OSError as e:
+            print_debug('{} File is still open. error is {}'.format(self.jobexeclistfile, str(e))
             os.remove(self.jobexeclistfile)
 
     def sync_globalobj(self):
