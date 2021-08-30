@@ -2184,6 +2184,7 @@ class masking:
             os.remove(self.jobexeclistfile)
         except OSError:
             print_debug('{} File is still open.'.format(self.jobexeclistfile))
+            os.remove(self.jobexeclistfile)
 
     def sync_globalobj(self):
         self.sync_syncable_objects("GLOBAL_OBJECT")
