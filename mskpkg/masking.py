@@ -2024,7 +2024,7 @@ class masking:
                         joblist_responselist = joblist_response["responseList"]
                         for joblist in joblist_responselist:
                             print_debug("joblist : {}".format(joblist))
-                            fe = open(self.jobexeclistfile, "a")
+                            #fe = open(self.jobexeclistfile, "a")
                             jobexecapicall = "executions?job_id={}&page_number=1&page_size=999".format(
                                 joblist["maskingJobId"]
                             )
@@ -2050,6 +2050,7 @@ class masking:
                                         and self.envname
                                         == envname["environmentName"]
                                     ):
+                                        fe = open(self.jobexeclistfile, "a")
                                         fe.write(
                                             "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
                                                 joblist["maskingJobId"],
@@ -2080,7 +2081,7 @@ class masking:
                                                 engine["poolname"],
                                             )
                                         )
-                                        #fe.close()
+                                        fe.close()
                                 else:
                                     print_debug("All Jobs")
                                     print_debug(latestexecid)
@@ -2090,6 +2091,7 @@ class masking:
                                         latestexecid["status"]
                                         == latestexecid["status"]
                                     ):
+                                        fe = open(self.jobexeclistfile, "a")
                                         fe.write(
                                             "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
                                                 joblist["maskingJobId"],
@@ -2120,8 +2122,7 @@ class masking:
                                                 engine["poolname"],
                                             )
                                         )
-                                        #fe.close()
-                            fe.close()
+                                        fe.close()
             else:
                 print_debug(
                     "Engine not from requested pool : {}, Poolname: {}".format(
