@@ -2121,6 +2121,8 @@ class masking:
                                             )
                                         )
                                         fe.close()
+                            if not fe.closed():
+                                fe.close()
             else:
                 print_debug(
                     "Engine not from requested pool : {}, Poolname: {}".format(
