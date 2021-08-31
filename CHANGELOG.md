@@ -103,3 +103,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bugfix  : Sync single environment with different name
 - Feature : Added feature to exclude/include admin user in cleanup. Default leave admin users as it is.
 - Change  : Disabled connector test by default after sync. It can be done seperately
+
+## [2.0.4-rc3] - 2021-15-07
+- Bugfix  : Delete engine causes engine list in pool to corrupt inventory in msksidekick
+- Feature : Added feature to exclude non admin user during engine sync (Default exclude non-admin users)
+- Feature : Reformatted code and reduced new connections to engine for every api call
+- Feature : Added exit codes 0 and 1
+
+## [2.0.4-rc4] - 2021-29-07
+- Feature : Added stderr to backup module when exit code is 1
+- Bugfix  : Fixed character correct color printing for windows
+- Bugfix  : Fixed pull-currjoblist for windows
+- Bugfix  : Display correct engine name when run is already running during run-job module execution
+
+## [2.0.4]     - 2021-30-08
+- Feature : Added stderr to all module when exit code is 1
