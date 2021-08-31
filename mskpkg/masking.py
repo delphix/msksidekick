@@ -565,12 +565,7 @@ class masking:
             )
         except Exception as e:
             print_debug(str(e))
-            print_debug(
-                "Error adding engine {} to file {}".format(
-                    self.mskengname, self.enginelistfile
-                )
-            )
-            sys.exit(1)
+            raise Exception("ERROR: Error adding engine {} to file {}".format(self.mskengname, self.enginelistfile))
 
     def list_engine(self):
         csvdir = self.outputdir
@@ -598,12 +593,10 @@ class masking:
                     )
                 print(" ")
             else:
-                print("No Engine found in pool")
-                sys.exit(1)
+                raise Exception("ERROR: No Engine found in pool")
         except Exception as e:
             print_debug(str(e))
-            print_debug("Not able to open file {}".format(self.enginelistfile))
-            sys.exit(1)
+            raise Exception("ERROR: Not able to open file {}".format(self.enginelistfile))
 
     def del_engine(self):
         newenginelist = []
@@ -648,16 +641,10 @@ class masking:
                         )
                     )
             else:
-                print("File {} does not exists".format(self.enginelistfile))
-                sys.exit(1)
+                raise Exception("ERROR: File {} does not exists".format(self.enginelistfile))
         except Exception as e:
             print_debug(str(e))
-            print_debug(
-                "Error deleting engine {} from file {}".format(
-                    self.mskengname, self.enginelistfile
-                )
-            )
-            sys.exit(1)
+            raise Exception("ERROR: Error deleting engine {} from file {}".format(self.mskengname, self.enginelistfile))
 
     def get_auth_key(self, ip_address, port=80):
         protocol = self.protocol
@@ -855,7 +842,8 @@ class masking:
                 env_job = line.strip().split(",")
                 filejobspec = "{},{}".format(env_job[5], env_job[1])
                 if filejobspec == reqjobspec:
-                    r = 1
+                    #r = 1
+                    r = env_job[6]
                     return r
                     break
                 line = fp.readline()
@@ -923,10 +911,7 @@ class masking:
                 nonreach_enginelist.append(engine_list_dict)
 
         if not enginelist:
-            print(
-                "Unable to reach any engines. Please check connections to engine in pool"
-            )
-            sys.exit(1)
+            raise Exception("ERROR: Unable to reach any engines. Please check connections to engine in pool")
 
         print_debug("engine_list:\n{}".format(engine_list))
         print_debug("enginelist :\n{}".format(enginelist))
@@ -948,7 +933,7 @@ class masking:
                     self.jobname, self.envname
                 )
             )
-            sys.exit(1)
+            raise Exception("ERROR: Job : {} in Environment: {} does not exists on any masking server. Please recheck job name / environment and resubmit.".format(self.jobname, self.envname))
         engine_pool_for_job = self.get_jobreqlist(
             job_list, self.jobname, self.envname
         )
@@ -1361,7 +1346,9 @@ class masking:
                                         jobid, engine_name
                                     )
                                 )
-                                sys.exit(1)
+                                raise Exception(
+                                    "ERROR: Execution of Masking job# {} on Engine {} failed".format(
+                                        jobid, engine_name))
                         else:
                             print_red_on_white = lambda x: cprint(
                                 x, "red", "on_white"
@@ -1374,7 +1361,12 @@ class masking:
                                     chk_status,
                                 )
                             )
-                            sys.exit(1)
+                            raise Exception(
+                                "ERROR: Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
+                                    self.jobname,
+                                    self.envname,
+                                    engine_name,
+                                    chk_status,))
                         break
                     else:
                         print_green_on_white = lambda x: cprint(
@@ -1445,7 +1437,9 @@ class masking:
                         idx = idx + 1
                         print(" {}) {}".format(idx, engine["ip_address"]))
                 print(" ")
-                sys.exit(1)
+                raise Exception(
+                    "ERROR: All engines are busy. Running job {} of environment {} may cause issues.".format(
+                        self.jobname, self.envname))
         else:
             redcandidate = []
             for item in unqualified_engines:
@@ -1588,7 +1582,9 @@ class masking:
                                     jobid, engine_name
                                 )
                             )
-                            sys.exit(1)
+                            raise Exception(
+                                "ERROR: Execution of Masking job# {} on Engine {} failed.".format(
+                                    jobid, engine_name))
                     else:
                         print_red_on_white = lambda x: cprint(
                             x, "red", "on_white"
@@ -1598,7 +1594,9 @@ class masking:
                                 jobid, engine_name
                             )
                         )
-                        sys.exit(1)
+                        raise Exception(
+                            "ERROR: Execution of Masking job# {} on Engine {} failed.".format(
+                                jobid, engine_name))
                 else:
                     print_red_on_white = lambda x: cprint(x, "red", "on_white")
                     print_red_on_white(
@@ -2136,7 +2134,8 @@ class masking:
             )
         else:
             print("Unable to connect any engines")
-            sys.exit(1)
+            raise Exception(
+                "ERROR: Unable to connect any engines")
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         print(
             (
@@ -2477,8 +2476,8 @@ class masking:
                         src_env_name, src_engine_name, srcapikey
                     )
                 except:
-                    sys.exit(
-                        "Error: Unable to pull source env id for environment {}. Please check engine and environment name".format(
+                    raise Exception(
+                        "ERROR: Unable to pull source env id for environment {}. Please check engine and environment name".format(
                             src_env_name
                         )
                     )
@@ -2734,7 +2733,11 @@ class masking:
                     msk_engine_name
                 )
             )
-            sys.exit(1)
+            raise Exception(
+                "ERROR: Unable to connect Source engine {}. Please check username, user, password and protocol".format(
+                    msk_engine_name
+                )
+            )
         else:
             return mskapikey
 
@@ -3001,8 +3004,8 @@ class masking:
                     src_env_name, src_engine_name, srcapikey
                 )
             except:
-                sys.exit(
-                    "Error: Unable to pull source env id for environment {}. Please check engine and environment name".format(
+                raise Exception(
+                    "ERROR: Unable to pull source env id for environment {}. Please check engine and environment name".format(
                         src_env_name
                     )
                 )
@@ -3487,12 +3490,7 @@ class masking:
             tgt_engine_name, tgtapikey, tgtapicall, srcapiresponse, port=80
         )
         if tgtapiresponse is None:
-            print(
-                " Failed to restore Syncable Object {}".format(
-                    syncable_object_type
-                )
-            )
-            sys.exit(1)
+            raise Exception("ERROR: Failed to restore Syncable Object {}".format(syncable_object_type))
         else:
             print(
                 " Restored syncable_object_type: {}".format(
@@ -3830,10 +3828,7 @@ class masking:
                     port=80,
                 )
                 if tgtapiresponse is None:
-                    print(
-                        " Environment {} restore failed.".format(src_env_name)
-                    )
-                    sys.exit(1)
+                    raise Exception("ERROR: Environment {} restore failed.".format(src_env_name))
                 else:
                     print(
                         " Environment {} restored successfully. Please update password for connectors in this environment using GUI / API".format(
@@ -4094,8 +4089,8 @@ class masking:
             print(" Restore Engine {} - complete".format(tgt_engine_name))
             print(" ")
         else:
-            print(" Error connecting source engine {}".format(tgt_engine_name))
-            sys.exit(1)
+            raise Exception("ERROR: Error connecting source engine {}".format(tgt_engine_name))
+
 
     def offline_restore_env(self):
         tgt_engine_name = self.mskengname
@@ -4254,12 +4249,8 @@ class masking:
                         port=80,
                     )
                     if tgtapiresponse is None:
-                        print(
-                            " Environment {} restore failed.".format(
-                                src_env_name
-                            )
-                        )
-                        sys.exit(1)
+                        raise Exception("ERROR: Environment {} restore failed.".format(src_env_name))
+
                     else:
                         print(
                             " Environment {} restored successfully. Please update password for connectors in this environment using GUI / API".format(
@@ -4530,8 +4521,7 @@ class masking:
             print(" ")
 
         else:
-            print(" Error connecting source engine {}".format(src_engine_name))
-            sys.exit(1)
+            raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
 
     def gen_otf_job_mappings(
         self, src_engine_name, src_env_name, sync_scope=None, jobname=None
@@ -5521,9 +5511,8 @@ class masking:
                             )
                             print_debug(e)
             except Exception as e:
-                print(" Unable to pull {} connector data".format(conn_type))
                 print_debug(e)
-                sys.exit(1)
+                raise Exception("ERROR: Unable to pull {} connector data".format(conn_type))
             print(" ")
 
         else:

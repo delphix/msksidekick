@@ -45,7 +45,7 @@ from mskpkg.virtualization import virtualization
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.4-rc4"
+VERSION = "2.0.4"
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))
@@ -199,6 +199,7 @@ def add_engine(config, mskengname, totalgb, systemgb, poolname):
         poolname=poolname,
     )
     mskai.add_engine()
+    sys.exit(0)
 
 
 # list_engine
@@ -211,6 +212,7 @@ def list_engine(config):
 
     mskai = masking(config, noparam="noparam")
     mskai.list_engine()
+    sys.exit(0)
 
 
 # del_engine
@@ -230,6 +232,7 @@ def del_engine(config, mskengname):
         click.echo("mskengname = {0}".format(mskengname))
     mskai = masking(config, mskengname=mskengname)
     mskai.del_engine()
+    sys.exit(0)
 
 
 # pulljoblist
@@ -279,6 +282,7 @@ def pull_joblist(config, mskengname, username, password, protocol):
         protocol=protocol,
     )
     mskai.pull_joblist()
+    sys.exit(0)
 
 
 # pull_currjoblist
@@ -323,7 +327,7 @@ def pull_currjoblist(
         print(" jobname  = {0}".format(jobname))
         print(" envname  = {0}".format(envname))
         print(" username = {0}".format(username))
-        print(" protocol      = {0}".format(protocol))
+        print(" protocol = {0}".format(protocol))
 
     try:
         mskai = masking(
@@ -336,6 +340,7 @@ def pull_currjoblist(
             poolname=poolname,
         )
         mskai.pull_currjoblist()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -356,6 +361,7 @@ def gen_dxtools_conf(config, protocol):
     print_banner()
     mskai = masking(config, protocol=protocol)
     mskai.gen_dxtools_conf()
+    sys.exit(0)
 
 
 # syncjob
@@ -458,6 +464,7 @@ def sync_job(
             protocol=protocol,
         )
         mskai.sync_job()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -554,6 +561,7 @@ def sync_env(
             protocol=protocol,
         )
         mskai.sync_env()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -651,6 +659,7 @@ def sync_eng(
             excludenonadmin=excludenonadmin,
         )
         mskai.sync_eng()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -729,6 +738,7 @@ def sync_globalobj(
             protocol=protocol,
         )
         mskai.sync_globalobj()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -791,6 +801,7 @@ def cleanup_eng(
             includeadmin=includeadmin,
         )
         mskai.cleanup_eng()
+        sys.exit(0)
     except Exception as e:
         print_exception_exit1()
 
@@ -909,12 +920,14 @@ def run_job(
         chk_status = mskai.chk_job_running()
         # print("chk_status={}".format(chk_status))
         if chk_status != 0:
-            print(
-                " Job {} on Env {} is already running on engine {}. Please retry later".format(
-                    jobname, envname, chk_status
-                )
-            )
-            sys.exit(1)
+            # print(
+            #     " Job {} on Env {} is already running on engine {}. Please retry later".format(
+            #         jobname, envname, chk_status
+            #     )
+            # )
+            # sys.exit(1)
+            raise Exception("ERROR: Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname, chk_status))
+
     except Exception as e:
         print_exception_exit1()
 
@@ -961,6 +974,7 @@ def run_job(
         mskai.run_job()
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 # test-connectors
@@ -1013,6 +1027,7 @@ def test_connectors(config, mskengname, username, password, protocol):
         mskai.test_all_connectors()
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 # list_green_eng
@@ -1105,9 +1120,11 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
         aive.gen_cpu_file()
         print_debug("Capture CPU usage data : done")
         print_debug(" ")
-    except:
+    except Exception as e:
         print("Error in VE module")
-        sys.exit(1)
+        # sys.exit(1)
+        # raise Exception("ERROR: Error in VE module")
+        print_exception_exit1()
 
     try:
         mskai = masking(
@@ -1120,6 +1137,7 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
         mskai.list_eng_usage()
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 # offline_backup_eng
@@ -1180,6 +1198,7 @@ def offline_backup_eng(
         sys.exit(0)
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 # offline_restore_eng
@@ -1239,6 +1258,7 @@ def offline_restore_eng(
         mskai.offline_restore_eng()
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 # offline_restore_env
@@ -1307,6 +1327,7 @@ def offline_restore_env(
         mskai.offline_restore_env()
     except Exception as e:
         print_exception_exit1()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
