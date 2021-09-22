@@ -34,6 +34,7 @@ import collections
 import os
 import sys
 import traceback
+0# import sqlite3
 
 import click
 import atexit
@@ -45,7 +46,10 @@ from mskpkg.virtualization import virtualization
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.4"
+VERSION = "2.0.5-rc1"
+# con = sqlite3.connect('msksidekick.db')
+# cur = con.cursor()
+
 output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
 try:
     # print("output_dir = {}".format(output_dir))

@@ -57,7 +57,7 @@ class masking:
         self.scriptdir = getattr(
             sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
         )
-        # self.scriptdir = os.path.dirname(os.path.abspath(__file__))
+
         self.enginelistfile = globals.enginelistfile
         self.joblistfile = globals.joblistfile
         self.jobexeclistfile = globals.jobexeclistfile
@@ -228,17 +228,13 @@ class masking:
             self.protocol = kwargs["protocol"]
         else:
             self.protocol = "http"
-        self.outputdir = os.path.join(self.scriptdir, "output")
-        self.outputfilename = "output.txt"
-        self.report_output = os.path.join(
-            self.scriptdir, "output", self.outputfilename
-        )
-        try:
-            os.stat(self.outputdir)
-        except:
-            os.mkdir(self.outputdir)
-            if self.config.debug:
-                print_debug("Created directory {}".format(self.outputdir))
+        # self.outputdir = os.path.join(self.scriptdir, "output")
+        # try:
+        #     os.stat(self.outputdir)
+        # except:
+        #     os.mkdir(self.outputdir)
+        #     if self.config.debug:
+        #         print_debug("Created directory {}".format(self.outputdir))
         colorama.init()
 
     def create_dictobj(self, filename):
@@ -568,7 +564,6 @@ class masking:
             raise Exception("ERROR: Error adding engine {} to file {}".format(self.mskengname, self.enginelistfile))
 
     def list_engine(self):
-        csvdir = self.outputdir
         try:
             if os.path.exists(self.enginelistfile):
                 engine_list = self.create_dictobj(self.enginelistfile)
@@ -3441,25 +3436,43 @@ class masking:
 
                 env_mapping[src_env_id] = src_env_name
 
-                srcapicall = "export"
-                srcapiresponse = self.post_api_response1(
-                    src_engine_name, srcapikey, srcapicall, envdef, port=80
+                otf_job_mapping_list_file = "{}/mappings/backup_{}.dat".format(
+                    bkp_main_dir, "otf_job_mapping"
                 )
+                with open(otf_job_mapping_list_file, "rb") as f1:
+                    otf_job_mapping_dict = pickle.load(f1)
 
-                env_bkp_dict = {
-                    "src_app_id": src_app_id,
-                    "src_app_name": src_app_name,
-                    "src_env_id": src_env_id,
-                    "src_env_name": src_env_name,
-                    "src_env_purpose": src_env_purpose,
-                    "srcapiresponse": srcapiresponse,
-                }
-                env_bkp_file = "{}/environments/backup_env_{}.dat".format(
-                    bkp_main_dir, src_env_id
-                )
-                with open(env_bkp_file, "wb") as fh:
-                    pickle.dump(env_bkp_dict, fh)
-                print("Created backup of environment {}".format(src_env_name))
+                # OTF env need to be handled separately due to possibility of DLPX-77471
+                otf_env = 0
+                for mapping in otf_job_mapping_dict:
+                    if otf_env == 1:
+                        break
+                    else:
+                        if mapping['src_env_name'] == src_env_name:
+                            otf_env = 1
+                            break
+                otf_env = 0
+                if otf_env == 1:
+                    print("{} is OTF job environment so cannot backup at this time".format(src_env_name));
+                else:
+                    srcapicall = "export"
+                    srcapiresponse = self.post_api_response1(
+                        src_engine_name, srcapikey, srcapicall, envdef, port=80
+                    )
+                    env_bkp_dict = {
+                        "src_app_id": src_app_id,
+                        "src_app_name": src_app_name,
+                        "src_env_id": src_env_id,
+                        "src_env_name": src_env_name,
+                        "src_env_purpose": src_env_purpose,
+                        "srcapiresponse": srcapiresponse,
+                    }
+                    env_bkp_file = "{}/environments/backup_env_{}.dat".format(
+                        bkp_main_dir, src_env_id
+                    )
+                    with open(env_bkp_file, "wb") as fh:
+                        pickle.dump(env_bkp_dict, fh)
+                    print("Created backup of environment {}".format(src_env_name))
 
             env_mapping_file = "{}/mappings/backup_env_mapping.dat".format(
                 bkp_main_dir
