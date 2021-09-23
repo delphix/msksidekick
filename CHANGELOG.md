@@ -118,3 +118,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.4]     - 2021-30-08
 - Feature : Added stderr to all module when exit code is 1
+
+## [2.0.5-rc1] - 2021-22-09
+- Bugfix  : When msksidekick called with full path from different location, output directory is not recognized

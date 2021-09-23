@@ -53,11 +53,11 @@ class dotdict(dict):
 
 class masking:
     def __init__(self, config, **kwargs):
-        self.scriptname = os.path.basename(__file__)
-        self.scriptdir = getattr(
-            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
-        )
-
+        # self.scriptname = os.path.basename(__file__)
+        # self.scriptdir = getattr(
+        #     sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+        # )
+        # self.scriptdir = globals.script_dir_path
         self.enginelistfile = globals.enginelistfile
         self.joblistfile = globals.joblistfile
         self.jobexeclistfile = globals.jobexeclistfile
@@ -228,13 +228,6 @@ class masking:
             self.protocol = kwargs["protocol"]
         else:
             self.protocol = "http"
-        # self.outputdir = os.path.join(self.scriptdir, "output")
-        # try:
-        #     os.stat(self.outputdir)
-        # except:
-        #     os.mkdir(self.outputdir)
-        #     if self.config.debug:
-        #         print_debug("Created directory {}".format(self.outputdir))
         colorama.init()
 
     def create_dictobj(self, filename):
@@ -564,6 +557,7 @@ class masking:
             raise Exception("ERROR: Error adding engine {} to file {}".format(self.mskengname, self.enginelistfile))
 
     def list_engine(self):
+        error_condition = 0
         try:
             if os.path.exists(self.enginelistfile):
                 engine_list = self.create_dictobj(self.enginelistfile)
@@ -588,10 +582,15 @@ class masking:
                     )
                 print(" ")
             else:
-                raise Exception("ERROR: No Engine found in pool")
+                error_condition = 1
+                raise Exception ("ERROR: No Engine found in pool")
+
         except Exception as e:
             print_debug(str(e))
-            raise Exception("ERROR: Not able to open file {}".format(self.enginelistfile))
+            if error_condition == 1:
+                raise Exception("ERROR: No Engine found in pool")
+            else:
+                raise Exception("ERROR: Not able to open file {}".format(self.enginelistfile))
 
     def del_engine(self):
         newenginelist = []
