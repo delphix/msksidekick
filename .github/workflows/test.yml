@@ -64,7 +64,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Remove pyInstaller 4.2
       run: |
-        pip install pyInstaller setuptools
+        pip install pyInstaller
     - name: Get the version
       id: get_version
       run: |
