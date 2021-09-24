@@ -51,3 +51,39 @@ jobs:
         run: |
           value=`cat math-homework.txt`
           echo The result is $value
+
+  centos7:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout msksidekick code
+      uses: actions/checkout@master
+
+    - name: Set up a Python container
+      uses: docker://ajayjt/pycentos7:latest
+
+    - name: Get the version
+      id: get_version
+      run: |
+        if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
+          SOURCE_TAG=${GITHUB_REF#refs/tags/}
+        elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
+          SOURCE_TAG=${GITHUB_REF#refs/heads/}
+        else
+          exit 1
+        fi
+        FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
+        echo "::set-env name=SOURCE_TAG::$SOURCE_TAG"
+        echo "::set-env name=FILENAME::$FILENAME"
+    - name: rename toolkit
+      run: |
+        ls -l 
+        pwd
+        ls -l dist/
+        mkdir msksidekick
+        cp dist/msksidekick msksidekick/msksidekick
+        tar czvf ${{ env.FILENAME }} msksidekick/
+    - name: Upload centos 7
+      uses: actions/upload-artifact@v1
+      with:
+        name: cento7build
+        path: ${{ env.FILENAME }}
