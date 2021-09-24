@@ -168,7 +168,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: windowsbuild
-        path: ${{ env:FILENAME }}
+        path: ${{ $env:FILENAME }}
 
   osx:
     runs-on: macos-latest
