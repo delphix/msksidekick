@@ -145,13 +145,15 @@ jobs:
     - name: compress toolkit
       run: |
         pwd
+        ls
         ls dist/
-        mkdir msksidekick
         $NAME = "d:\a\msksidekick\msksidekick\${env:FILENAME}"
         echo ${env:FILENAME}
         echo ${NAME}
-        cp dist/msksidekick.exe msksidekick/msksidekick.exe
-        Compress-Archive -Path .\msksidekick -DestinationPath ${NAME}
+        mkdir d:\a\msksidekick\msksidekick\msksidekick
+        copy d:\a\msksidekick\msksidekick\dist\msksidekick.exe msksidekick\
+        Compress-Archive -Path d:\a\msksidekick\msksidekick\msksidekick -DestinationPath ${NAME}
+      shell: powershell
 
     - name: Upload windows
       uses: actions/upload-artifact@v1
