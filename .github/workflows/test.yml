@@ -171,12 +171,17 @@ jobs:
         path: ${{ env.FILENAME }}
 
   osx:
-    runs-on: macos-latest
+    runs-on: macos-bigsur
     steps:
     - name: checkout msksidekick code
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
+        CELL=`brew --prefix perl`
+        OPENLIB=`brew --prefix openssl`
+        CDIR=`pwd`
+        export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
+        echo $LIBS
         python -V
         python3 -V
         pip3 install --upgrade pip3
@@ -206,12 +211,6 @@ jobs:
         pyinstaller --onefile --clean msksidekick.py
     - name: rename toolkit
       run: |
-        CELL=`brew --prefix perl`
-        OPENLIB=`brew --prefix openssl`
-        CDIR=`pwd`
-        export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
-        echo $LIBS
-
         pip3 install --upgrade 'setuptools<45.0.0'
         python3 setup.py install
         pip3 install pyinstaller
