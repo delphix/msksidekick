@@ -79,6 +79,7 @@ jobs:
         FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+        pyinstaller --onefile --clean msksidekick.py
     - name: rename toolkit
       run: |
         ls -l 
