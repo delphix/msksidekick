@@ -151,9 +151,17 @@ jobs:
         echo ${env:FILENAME}
         echo ${NAME}
         mkdir d:\a\msksidekick\msksidekick\msksidekick
+        echo "===="
         ls d:\a\msksidekick\msksidekick\dist\msksidekick.exe
+        echo "===="
+        pwd
         copy d:\a\msksidekick\msksidekick\dist\msksidekick.exe msksidekick\
-        Compress-Archive -Path d:\a\msksidekick\msksidekick\msksidekick -DestinationPath ${env:FILENAME}
+        echo ${env:FILENAME}
+        ls d:\a\msksidekick\msksidekick\msksidekick
+        ls d:\a\msksidekick\msksidekick\msksidekick\
+        Compress-Archive -Path d:\a\msksidekick\msksidekick\msksidekick -DestinationPath d:\a\msksidekick\msksidekick\${env:FILENAME}
+        ls ${env:FILENAME}
+        ls d:\a\msksidekick\msksidekick\${env:FILENAME}
       shell: powershell
 
     - name: Upload windows
