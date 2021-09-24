@@ -191,7 +191,6 @@ jobs:
     - name: setup python pkg
       run: |
         python -V
-        python3 -V
         pip install --upgrade pip
         if [ -f requirements.txt ]; then grep -v pyinstaller > requirements.txt1; fi
         if [ -f requirements.txt ]; then mv requirements.txt1 requirements.txt; fi
