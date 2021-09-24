@@ -57,19 +57,9 @@ jobs:
     steps:
     - name: checkout msksidekick code
       uses: actions/checkout@master
-    - name: Get Python Version
-      run: python -V
-    - name: Get Python3 Version
-      run: python3 -V
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.9
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi   
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Get the version
       id: get_version
       run: |
