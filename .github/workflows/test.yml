@@ -52,6 +52,7 @@ jobs:
           value=`cat math-homework.txt`
           echo The result is $value
 
+
   ubuntu-latest:
     runs-on: ubuntu-latest
     steps:
@@ -66,6 +67,7 @@ jobs:
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install --upgrade setuptools
+        python -V
         python3 -V
     - name: Install pyInstaller
       run: |
@@ -112,6 +114,7 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
         pip install --upgrade setuptools
+        python -V
         python3 -V
     - name: Install pyInstaller
       run: |
@@ -127,9 +130,7 @@ jobs:
         } else {
           exit 1
         }
-        $FILENAME="dxmc-" + $SOURCE_TAG + "-win64.zip"
-        echo "::set-env name=SOURCE_TAG::$SOURCE_TAG"
-        echo "::set-env name=FILENAME::$FILENAME"
+        $FILENAME="msksidekick-" + $SOURCE_TAG + "-win64.zip"
         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
       shell: powershell
@@ -172,12 +173,9 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install --upgrade pip
-        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
-        if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
-        if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install --upgrade setuptools
+        python -V
         python3 -V
     - name: Install pyInstaller
       run: |
