@@ -52,7 +52,7 @@ jobs:
           value=`cat math-homework.txt`
           echo The result is $value
 
-  ubuntu-18.04:
+  ubuntu-18LTS:
     runs-on: ubuntu-18.04
     steps:
     - name: checkout msksidekick code
