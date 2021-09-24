@@ -182,11 +182,13 @@ jobs:
     - name: Install dependencies
     - uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: 3.9
+    - name: check python version
     - run: |
         echo $PATH
         python --version
         which python
+    - name: setup python pkg
       run: |
         python -V
         python3 -V
