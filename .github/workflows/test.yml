@@ -132,6 +132,9 @@ jobs:
         $FILENAME="msksidekick-" + $SOURCE_TAG + "-win64.zip"
         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+        echo $SOURCE_TAG
+        echo $FILENAME
+        echo $GITHUB_ENV
       shell: powershell
 
     - name: Install OpenSSL
@@ -156,7 +159,7 @@ jobs:
         ls dist/
         mkdir msksidekick
         cp dist/msksidekick.exe msksidekick/msksidekick.exe
-        Compress-Archive -Path .\msksidekick -DestinationPath ${{ env.FILENAME }}
+        Compress-Archive -Path .\msksidekick -DestinationPath ${{ env.FILENAME }}a.zip
 
     - name: Upload windows
       uses: actions/upload-artifact@v1
