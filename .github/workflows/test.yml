@@ -61,7 +61,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install --upgrade pip
         if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
@@ -138,8 +137,8 @@ jobs:
     - name: Install OpenSSL
       run: |
         choco install openssl --no-progress
-        echo "::set-env name=INCLUDE::C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%"
-        echo "::set-env name=LIB::C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%"
+        echo "INCLUDE=C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%" >> $GITHUB_ENV
+        echo "LIB=C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%" >> $GITHUB_ENV
 
     - name: Install dependencies
       run: |
@@ -173,6 +172,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
+        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install --upgrade setuptools
         python -V
