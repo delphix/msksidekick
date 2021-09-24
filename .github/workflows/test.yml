@@ -194,14 +194,10 @@ jobs:
         pip uninstall jeepney -y
         pip install jeepney
         pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
-    - name: rename toolkit
-      run: |
-        cd ${CDIR}
         mkdir msksidekick
         cp dist/msksidekick msksidekick/msksidekick
         ls -l ./msksidekick
         tar czvf ${{ env.FILENAME }} msksidekick/msksidekick
-
     - name: Upload OSX
       uses: actions/upload-artifact@v1
       with:
