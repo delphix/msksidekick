@@ -59,10 +59,10 @@ jobs:
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
+        if [ -f requirements.txt ]; then sed -i 's/pyInstaller/d'; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Remove pyInstaller 4.2
       run: |
-        pip uninstall pyInstaller
         pip install pyInstaller
     - name: Get the version
       id: get_version
