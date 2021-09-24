@@ -110,14 +110,10 @@ jobs:
     - name: Install dependencies
       run: |
         pip install --upgrade pip
-        pip install --upgrade pip
         pip install -r requirements.txt
         pip install --upgrade setuptools
-        python -V
-        python3 -V
-    - name: Install pyInstaller
-      run: |
         pip install --upgrade pyInstaller
+        python -V
 
     - name: Get the version
       id: get_version
@@ -130,29 +126,18 @@ jobs:
           exit 1
         }
         $FILENAME="msksidekick-" + $SOURCE_TAG + "-win64.zip"
-        echo "${env:SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
-        echo "${env:FILENAME}=$FILENAME" >> $env:GITHUB_ENV
-        echo "${SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
-        echo "${FILENAME}=$FILENAME" >> $env:GITHUB_ENV
-        echo "\${env:SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
-        echo "\${env:FILENAME}=$FILENAME" >> $env:GITHUB_ENV
-        echo "\${SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
-        echo "\${FILENAME}=$FILENAME" >> $env:GITHUB_ENV
-        gc $env:GITHUB_ENV
+        echo "SOURCE_TAG=$SOURCE_TAG" >> ${env:GITHUB_ENV}
+        echo "FILENAME=$FILENAME" >> ${env:GITHUB_ENV}
       shell: powershell
 
     - name: Install OpenSSL
       run: |
         choco install openssl --no-progress
-        echo "INCLUDE=C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%" >> $GITHUB_ENV
-        echo "LIB=C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%" >> $GITHUB_ENV
+        echo "INCLUDE=C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%" >> ${env:GITHUB_ENV}
+        echo "LIB=C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%" >> ${env:GITHUB_ENV}
 
-    - name: Install dependencies
+    - name: Compile toolkit
       run: |
-        echo %INCLUDE%
-        python3 -m pip install --upgrade pip
-        python3 setup.py install
-        pip install pyinstaller
         pip uninstall jeepney -y
         pip install jeepney
         pyinstaller --onefile --clean msksidekick.py
@@ -162,8 +147,8 @@ jobs:
         pwd
         ls dist/
         mkdir msksidekick
-        $NAME = "d:\a\msksidekick\msksidekick\${{ env.FILENAME }}"
-        echo ${{ env.FILENAME }}
+        $NAME = "d:\a\msksidekick\msksidekick\${env:FILENAME}"
+        echo ${env:FILENAME}
         echo ${NAME}
         cp dist/msksidekick.exe msksidekick/msksidekick.exe
         Compress-Archive -Path .\msksidekick -DestinationPath ${NAME}
@@ -172,7 +157,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: windowsbuild
-        path: ${{ env.FILENAME }}
+        path: ${env:FILENAME}
 
   osx:
     runs-on: macos-latest
@@ -185,20 +170,14 @@ jobs:
         python-version: 3.9
     - name: check python version
       run: |
-        echo $PATH
         python --version
         which python
     - name: setup python pkg
       run: |
         python -V
         pip install --upgrade pip
-        if [ -f requirements.txt ]; then grep -v pyinstaller > requirements.txt1; fi
-        if [ -f requirements.txt ]; then mv requirements.txt1 requirements.txt; fi
-        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-        pip3 install --upgrade setuptools
-    - name: Install pyInstaller
-      run: |
-        pip install pyInstaller
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --upgrade setuptools
     - name: Get the version
       id: get_version
       run: |
