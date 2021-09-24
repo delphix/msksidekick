@@ -151,8 +151,9 @@ jobs:
         echo ${env:FILENAME}
         echo ${NAME}
         mkdir d:\a\msksidekick\msksidekick\msksidekick
+        ls d:\a\msksidekick\msksidekick\dist\msksidekick.exe
         copy d:\a\msksidekick\msksidekick\dist\msksidekick.exe msksidekick\
-        Compress-Archive -Path d:\a\msksidekick\msksidekick\msksidekick -DestinationPath ${NAME}
+        Compress-Archive -Path d:\a\msksidekick\msksidekick\msksidekick -DestinationPath ${env:FILENAME}
       shell: powershell
 
     - name: Upload windows
