@@ -158,8 +158,11 @@ jobs:
         pwd
         ls dist/
         mkdir msksidekick
+        $NAME = "d:\a\msksidekick\msksidekick\${{ env.FILENAME }}"
+        echo ${{ env.FILENAME }}
+        echo ${NAME}
         cp dist/msksidekick.exe msksidekick/msksidekick.exe
-        Compress-Archive -Path .\msksidekick -DestinationPath ${{ env.FILENAME }}a.zip
+        Compress-Archive -Path .\msksidekick -DestinationPath ${NAME}
 
     - name: Upload windows
       uses: actions/upload-artifact@v1
@@ -174,12 +177,13 @@ jobs:
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
-        pip install --upgrade pip
-        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install --upgrade setuptools
         python -V
         python3 -V
+        pip install --upgrade pip
+        if [ -f requirements.txt ]; then grep -v pyinstaller > requirements.txt1; fi
+        if [ -f requirements.txt ]; then mv requirements.txt1 requirements.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --upgrade setuptools
     - name: Install pyInstaller
       run: |
         pip install pyInstaller
