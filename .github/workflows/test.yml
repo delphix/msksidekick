@@ -184,7 +184,7 @@ jobs:
       with:
         python-version: 3.9
     - name: check python version
-    - run: |
+      run: |
         echo $PATH
         python --version
         which python
