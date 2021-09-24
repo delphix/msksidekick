@@ -130,15 +130,15 @@ jobs:
           exit 1
         }
         $FILENAME="msksidekick-" + $SOURCE_TAG + "-win64.zip"
-        echo "${env:SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
-        echo "${env:FILENAME}=$FILENAME" >> $GITHUB_ENV
-        echo "${SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
-        echo "${FILENAME}=$FILENAME" >> $GITHUB_ENV
-        echo "\${env:SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
-        echo "\${env:FILENAME}=$FILENAME" >> $GITHUB_ENV
-        echo "\${SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
-        echo "\${FILENAME}=$FILENAME" >> $GITHUB_ENV
-        gc $GITHUB_ENV
+        echo "${env:SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
+        echo "${env:FILENAME}=$FILENAME" >> $env:GITHUB_ENV
+        echo "${SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
+        echo "${FILENAME}=$FILENAME" >> $env:GITHUB_ENV
+        echo "\${env:SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
+        echo "\${env:FILENAME}=$FILENAME" >> $env:GITHUB_ENV
+        echo "\${SOURCE_TAG}=$SOURCE_TAG" >> $env:GITHUB_ENV
+        echo "\${FILENAME}=$FILENAME" >> $env:GITHUB_ENV
+        gc $env:GITHUB_ENV
       shell: powershell
 
     - name: Install OpenSSL
@@ -175,7 +175,7 @@ jobs:
         path: ${{ env.FILENAME }}
 
   osx:
-    runs-on: macos-bigsur
+    runs-on: macos-latest
     steps:
     - name: checkout msksidekick code
       uses: actions/checkout@master
