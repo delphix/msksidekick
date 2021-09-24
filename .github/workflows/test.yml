@@ -59,17 +59,17 @@ jobs:
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
-        pip3 install --upgrade pip
-        pip3 install --upgrade pip3
+        pip install --upgrade pip
+        pip install --upgrade pip
         if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
-        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-        pip3 install --upgrade setuptools
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --upgrade setuptools
         python3 -V
     - name: Install pyInstaller
       run: |
-        pip3 install pyInstaller
+        pip install pyInstaller
     - name: Get the version
       id: get_version
       run: |
@@ -83,8 +83,8 @@ jobs:
         FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-        pip3 uninstall jeepney -y
-        pip3 install jeepney
+        pip uninstall jeepney -y
+        pip install jeepney
         pyinstaller --onefile --clean msksidekick.py
     - name: rename toolkit
       run: |
@@ -108,14 +108,14 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip3 install --upgrade pip
-        pip3 install --upgrade pip3
-        pip3 install -r requirements.txt
-        pip3 install --upgrade setuptools
+        pip install --upgrade pip
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install --upgrade setuptools
         python3 -V
     - name: Install pyInstaller
       run: |
-        pip3 install --upgrade pyInstaller
+        pip install --upgrade pyInstaller
 
     - name: Get the version
       id: get_version
@@ -143,11 +143,11 @@ jobs:
     - name: Install dependencies
       run: |
         echo %INCLUDE%
-        python3 -m pip3 install --upgrade pip3
+        python3 -m pip install --upgrade pip
         python3 setup.py install
-        pip3 install pyinstaller
-        pip3 uninstall jeepney -y
-        pip3 install jeepney
+        pip install pyinstaller
+        pip uninstall jeepney -y
+        pip install jeepney
         pyinstaller --onefile --clean msksidekick.py
 
     - name: compress toolkit
@@ -171,17 +171,17 @@ jobs:
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
-        pip3 install --upgrade pip
-        pip3 install --upgrade pip3
+        pip install --upgrade pip
+        pip install --upgrade pip
         if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
-        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
-        pip3 install --upgrade setuptools
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --upgrade setuptools
         python3 -V
     - name: Install pyInstaller
       run: |
-        pip3 install pyInstaller
+        pip install pyInstaller
     - name: Get the version
       id: get_version
       run: |
@@ -195,8 +195,8 @@ jobs:
         FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-        pip3 uninstall jeepney -y
-        pip3 install jeepney
+        pip uninstall jeepney -y
+        pip install jeepney
         pyinstaller --onefile --clean msksidekick.py
     - name: rename toolkit
       run: |
@@ -206,9 +206,9 @@ jobs:
         export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
         echo $LIBS
 
-        pip3 install --upgrade 'setuptools<45.0.0'
+        pip install --upgrade 'setuptools<45.0.0'
         python3 setup.py install
-        pip3 install pyinstaller
+        pip install pyinstaller
         pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
         cd ${CDIR}
