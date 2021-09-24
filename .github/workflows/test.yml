@@ -63,6 +63,9 @@ jobs:
         if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        pip install --upgrade setuptools
+        pip install --upgrade pip
+        python -V
     - name: Remove pyInstaller 4.2
       run: |
         pip install pyInstaller
