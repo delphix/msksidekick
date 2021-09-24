@@ -60,7 +60,7 @@ jobs:
     - name: Install dependencies
       run: |
         cat requirements.txt
-        if [ -f requirements.txt ]; then sed -i '/pyInstaller/d' requirements.txt; fi
+        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         cat requirements.txt
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Remove pyInstaller 4.2
