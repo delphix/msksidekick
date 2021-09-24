@@ -130,11 +130,15 @@ jobs:
           exit 1
         }
         $FILENAME="msksidekick-" + $SOURCE_TAG + "-win64.zip"
-        echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
-        echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-        echo $SOURCE_TAG
-        echo $FILENAME
-        echo $GITHUB_ENV
+        echo "${env:SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "${env:FILENAME}=$FILENAME" >> $GITHUB_ENV
+        echo "${SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "${FILENAME}=$FILENAME" >> $GITHUB_ENV
+        echo "\${env:SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "\${env:FILENAME}=$FILENAME" >> $GITHUB_ENV
+        echo "\${SOURCE_TAG}=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "\${FILENAME}=$FILENAME" >> $GITHUB_ENV
+        gc $GITHUB_ENV
       shell: powershell
 
     - name: Install OpenSSL
