@@ -59,7 +59,9 @@ jobs:
       uses: actions/checkout@master
     - name: Install dependencies
       run: |
+        cat requirements.txt
         if [ -f requirements.txt ]; then sed -i '/pyInstaller/d' requirements.txt; fi
+        cat requirements.txt
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Remove pyInstaller 4.2
       run: |
