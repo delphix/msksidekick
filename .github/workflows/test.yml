@@ -169,6 +169,7 @@ jobs:
       with:
         name: windowsbuild
         path: ${env:FILENAME}
+      shell: powershell
 
   osx:
     runs-on: macos-latest
