@@ -52,21 +52,22 @@ jobs:
           value=`cat math-homework.txt`
           echo The result is $value
 
-  ubuntu-18LTS:
-    runs-on: ubuntu-16.04
+  ubuntu-latest:
+    runs-on: ubuntu-latest
     steps:
     - name: checkout msksidekick code
-      uses: actions/checkout@master
+      uses: actions/checkout@develop
     - name: Install dependencies
       run: |
+        pip3 install --upgrade pip
+        pip3 install --upgrade pip3
         if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
         if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
         if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
         pip3 install --upgrade setuptools
-        pip3 install --upgrade pip
         python3 -V
-    - name: Remove pyInstaller 4.2
+    - name: Install pyInstaller
       run: |
         pip3 install pyInstaller
     - name: Get the version
@@ -97,4 +98,127 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: cento7build
+        path: ${{ env.FILENAME }}
+
+  win2019:
+    runs-on: windows-latest
+    steps:
+    - name: checkout msksidekick code
+      uses: actions/checkout@develop
+
+    - name: Install dependencies
+      run: |
+        pip3 install --upgrade pip
+        pip3 install --upgrade pip3
+        pip3 install -r requirements.txt
+        pip3 install --upgrade setuptools
+        python3 -V
+    - name: Install pyInstaller
+      run: |
+        pip3 install --upgrade pyInstaller
+
+    - name: Get the version
+      id: get_version
+      run: |
+        if (${env:GITHUB_REF} -match "tags") {
+          $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/tags\/', ''
+        } elseif (${env:GITHUB_REF} -match "heads") {
+          $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/heads\/', ''
+        } else {
+          exit 1
+        }
+        $FILENAME="dxmc-" + $SOURCE_TAG + "-win64.zip"
+        echo "::set-env name=SOURCE_TAG::$SOURCE_TAG"
+        echo "::set-env name=FILENAME::$FILENAME"
+        echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+      shell: powershell
+
+    - name: Install OpenSSL
+      run: |
+        choco install openssl --no-progress
+        echo "::set-env name=INCLUDE::C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%"
+        echo "::set-env name=LIB::C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%"
+
+    - name: Install dependencies
+      run: |
+        echo %INCLUDE%
+        python3 -m pip3 install --upgrade pip3
+        python3 setup.py install
+        pip3 install pyinstaller
+        pip3 uninstall jeepney -y
+        pip3 install jeepney
+        pyinstaller --onefile --clean msksidekick.py
+
+    - name: compress toolkit
+      run: |
+        pwd
+        ls dist/
+        mkdir msksidekick
+        cp dist/msksidekick.exe msksidekick/msksidekick.exe
+        Compress-Archive -Path .\msksidekick -DestinationPath ${{ env.FILENAME }}
+
+    - name: Upload windows
+      uses: actions/upload-artifact@v1
+      with:
+        name: windowsbuild
+        path: ${{ env.FILENAME }}
+
+  osx:
+    runs-on: macos-latest
+    steps:
+    - name: checkout msksidekick code
+      uses: actions/checkout@develop
+    - name: Install dependencies
+      run: |
+        pip3 install --upgrade pip
+        pip3 install --upgrade pip3
+        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
+        if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
+        if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
+        if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+        pip3 install --upgrade setuptools
+        python3 -V
+    - name: Install pyInstaller
+      run: |
+        pip3 install pyInstaller
+    - name: Get the version
+      id: get_version
+      run: |
+        if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
+          SOURCE_TAG=${GITHUB_REF#refs/tags/}
+        elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
+          SOURCE_TAG=${GITHUB_REF#refs/heads/}
+        else
+          exit 1
+        fi
+        FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
+        echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
+        echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+        pip3 uninstall jeepney -y
+        pip3 install jeepney
+        pyinstaller --onefile --clean msksidekick.py
+    - name: rename toolkit
+      run: |
+        CELL=`brew --prefix perl`
+        OPENLIB=`brew --prefix openssl`
+        CDIR=`pwd`
+        export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
+        echo $LIBS
+
+        pip3 install --upgrade 'setuptools<45.0.0'
+        python3 setup.py install
+        pip3 install pyinstaller
+        pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+
+        cd ${CDIR}
+        mkdir msksidekick
+        cp dist/msksidekick msksidekick/msksidekick
+        ls -l ./msksidekick
+        tar czvf ${{ env.FILENAME }} msksidekick/msksidekick
+
+    - name: Upload OSX
+      uses: actions/upload-artifact@v1
+      with:
+        name: osxbuild
         path: ${{ env.FILENAME }}
