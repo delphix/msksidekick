@@ -10,4 +10,4 @@ pip3 uninstall jeepney -y
 pip3 install jeepney
 pyinstaller --onefile --clean msksidekick.py
 cd /github/workspace/dist
-tail -f /dev/null
+# tail -f /dev/null
