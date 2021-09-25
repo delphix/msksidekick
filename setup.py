@@ -1,19 +1,29 @@
 from setuptools import setup
 
 setup(
-    name='mskaiagnt',
-    version='1.0',
-    py_modules=['mskaiagnt'],
+    name='msksidekick',
+    version='1.1.4',
+    py_modules=['msksidekick'],
     install_requires=[
+        'altgraph',
+        'certifi',
+        'chardet',
         'Click',
-		'termcolor',
-		'requests',
+        'docutils',
+        'idna',
+        'macholib',
         'psutil',
+        'pyinstaller',
+        'pyinstaller-hooks-contrib',
+        'termcolor',
+        'requests',
         'statistics',
-        'colorama'
+        'colorama',
+        'setuptools',
+        'urllib3'
     ],
     entry_points='''
         [console_scripts]
-        mskaiagnt=mskaiagnt:cli
+        msksidekick=msksidekick:cli
     ''',
 )
