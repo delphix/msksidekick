@@ -20,7 +20,9 @@ setup(
         'statistics',
         'colorama',
         'setuptools',
-        'urllib3'
+        'urllib3',
+        'wheel',
+        'pyinstaller'
     ],
     entry_points='''
         [console_scripts]
