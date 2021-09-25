@@ -3,6 +3,7 @@
 cd /github/workspace
 ls -l
 python3 setup.py install
+pip3 install wheel
 pip3 install pyinstaller
 # for pyinstaller to run
 pip3 uninstall jeepney -y

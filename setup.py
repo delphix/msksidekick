@@ -5,6 +5,7 @@ setup(
     version='1.1.4',
     py_modules=['msksidekick'],
     install_requires=[
+        'wheel',
         'altgraph',
         'certifi',
         'chardet',
@@ -20,9 +21,7 @@ setup(
         'statistics',
         'colorama',
         'setuptools',
-        'urllib3',
-        'wheel',
-        'pyinstaller'
+        'urllib3'
     ],
     entry_points='''
         [console_scripts]
