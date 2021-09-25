@@ -62,7 +62,7 @@ jobs:
       uses: actions/checkout@master
 
     - name: Set up a Python container
-      uses: docker://pioro/dxpythoncentos7:latest
+      uses: docker://ajayjt/pycentos7:latest
 
     - name: Get the version
       id: get_version
