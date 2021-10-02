@@ -224,6 +224,8 @@ class masking:
             self.includeadmin = kwargs["includeadmin"]
         if "excludenonadmin" in kwargs.keys():
             self.excludenonadmin = kwargs["excludenonadmin"]
+        if "action" in kwargs.keys():
+            self.action = kwargs["action"]
         if "protocol" in kwargs.keys():
             self.protocol = kwargs["protocol"]
         else:
@@ -4534,6 +4536,112 @@ class masking:
 
         else:
             raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
+
+    def duplicate_connectors(self):
+        src_engine_name = self.mskengname
+        srcapikey = self.get_auth_key(src_engine_name)
+        print_debug("srcapikey={}".format(srcapikey))
+        i = 0
+        if srcapikey is not None:
+
+            apicall = "environments?page_number=1&page_size=999"
+            connectorlist = []
+            duplicateconnlist = []
+
+            envresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+            if envresponse is None:
+                raise Exception("ERROR: Unable to pull environment details of engine {}".format(src_engine_name))
+            else:
+                for env in envresponse['responseList']:
+                    for conntype in ["database-connectors","file-connectors","mainframe-dataset-connectors"]:
+                        apicall = "{}?page_number=1&page_size=999&environment_id={}".format(conntype,
+                            env['environmentId'])
+                        connresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                        if connresponse is None:
+                            raise Exception("ERROR: Unable to pull connector details for connector type : {}".format(conntype))
+                        else:
+                            for connector in connresponse['responseList']:
+                                if conntype == "database-connectors":
+                                    connidparam = "databaseConnectorId"
+                                elif conntype == "file-connectors":
+                                    connidparam = "fileConnectorId"
+                                elif conntype == "mainframe-dataset-connectors":
+                                    connidparam = "mainframeDatasetConnectorId"
+
+                                connectordict = {'environmentId': env['environmentId'],
+                                                 'environmentName': env['environmentName'],
+                                                 'connectorId': connector[connidparam],
+                                                 'connectorName': connector['connectorName'],
+                                                 'connectorType': conntype}
+                                connectorlist.append(connectordict)
+
+                duplicate_conn_names = (
+                [connectorName for connectorName, count in Counter(x['connectorName'] for x in connectorlist).items() if
+                 count > 1])
+                for rec in connectorlist:
+                    if rec['connectorName'] in duplicate_conn_names:
+                        duplicateconnlist.append(rec)
+                sortedduplicateconnlist = sorted(duplicateconnlist, key=lambda k: k['connectorName'])
+
+                if len(sortedduplicateconnlist) > 0:
+                    if self.action == "list":
+                        print("{},{},{},{},{}".format("connectorId", "connectorName", "environmentId", "environmenNamed",
+                                                      "connectorType"))
+
+                prevname = None
+                newname = None
+                for conn in sortedduplicateconnlist:
+                    conntype =  conn['connectorType']
+                    if conntype == "database-connectors":
+                        connidparam = "databaseConnectorId"
+                    elif conntype == "file-connectors":
+                        connidparam = "fileConnectorId"
+                    elif conntype == "mainframe-dataset-connectors":
+                        connidparam = "mainframeDatasetConnectorId"
+
+                    newname = conn['connectorName']
+                    if newname != prevname:
+                        if i != 0:
+                            if self.action == "list":
+                                print(" ")
+                        else:
+                            i = i + 1
+                    prevname = newname
+                    if self.action == "list":
+                        print(
+                            "{},{},{},{},{}".format(conn['connectorId'], conn['connectorName'], conn['environmentId'],
+                                                 conn['environmentName'],conn['connectorType']))
+
+                    if self.action == "resolve":
+                        apicall = "{}/{}".format(conn['connectorType'],conn['connectorId'])
+                        connresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                        if connresponse is None:
+                            raise Exception("ERROR: Unable to pull details for connector {} - {} - {}".format(
+                                conn['connectorType'],conn['connectorId'],conn['connectorName']))
+                        else:
+                            originalConnectorName = connresponse['connectorName']
+                            renamedConnectorName = "{}{}{}".format(connresponse['connectorName'],
+                                                                              connresponse[connidparam],
+                                                                              connresponse['environmentId'])
+                            connresponse['connectorName'] = renamedConnectorName
+                            putconnresponse = self.put_api_response(src_engine_name, srcapikey, apicall, connresponse)
+                            if putconnresponse is None:
+                                print(
+                                    "ERROR: Renaming connector with Id:{} and Name:{} to {} failed.".format(connresponse[connidparam],
+                                                                                     originalConnectorName,
+                                                                                     connresponse['connectorName']))
+                            else:
+                                print(
+                                    "Success: Renamed connector with Id:{} and Name:{} to {}".format(connresponse[connidparam],
+                                                                                      originalConnectorName,
+                                                                                      connresponse['connectorName']))
+            # if i == 0:
+            if i == 0:
+                print("No duplicate connector names found.")
+            print(" ")
+
+        else:
+            raise Exception("ERROR: Error connecting masking engine {}".format(src_engine_name))
 
     def gen_otf_job_mappings(
         self, src_engine_name, src_env_name, sync_scope=None, jobname=None

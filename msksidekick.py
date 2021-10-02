@@ -48,7 +48,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.5-rc1"
+VERSION = "2.0.5-rc2"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -1319,6 +1319,69 @@ def offline_restore_env(
     except Exception as e:
         print_exception_exit1()
     sys.exit(0)
+
+
+# duplicate_connectors
+@cli.command()
+@click.option(
+    "--mskengname",
+    default="",
+    prompt="Enter Masking Engine name",
+    help="Masking Engine name",
+)
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking mskaiagnt username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    help="Masking mskaiagnt password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@click.option(
+    "--action",
+    type=click.Choice(['list', 'resolve']),
+    default="list",
+    help="List Connector | Rename conflicting connector names ( All conflicting connector names will be renamed )",
+)
+@pass_config
+def duplicate_connectors(
+        config, mskengname, username, password, protocol, action
+):
+    """This module will offline backup engine"""
+
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" mskengname    = {0}".format(mskengname))
+        print(" username      = {0}".format(username))
+        print(" protocol      = {0}".format(protocol))
+        print(" action        = {0}".format(action))
+        print(" ")
+
+    try:
+        mskai = masking(
+            config,
+            mskengname=mskengname,
+            username=username,
+            password=password,
+            protocol=protocol,
+            action=action,
+        )
+        mskai.duplicate_connectors()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
+    sys.exit(0)
+
 
 
 if __name__ == "__main__":
