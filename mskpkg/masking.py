@@ -53,11 +53,11 @@ class dotdict(dict):
 
 class masking:
     def __init__(self, config, **kwargs):
-        self.scriptname = os.path.basename(__file__)
-        self.scriptdir = getattr(
-            sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
-        )
-        # self.scriptdir = os.path.dirname(os.path.abspath(__file__))
+        # self.scriptname = os.path.basename(__file__)
+        # self.scriptdir = getattr(
+        #     sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+        # )
+        # self.scriptdir = globals.script_dir_path
         self.enginelistfile = globals.enginelistfile
         self.joblistfile = globals.joblistfile
         self.jobexeclistfile = globals.jobexeclistfile
@@ -224,21 +224,12 @@ class masking:
             self.includeadmin = kwargs["includeadmin"]
         if "excludenonadmin" in kwargs.keys():
             self.excludenonadmin = kwargs["excludenonadmin"]
+        if "action" in kwargs.keys():
+            self.action = kwargs["action"]
         if "protocol" in kwargs.keys():
             self.protocol = kwargs["protocol"]
         else:
             self.protocol = "http"
-        self.outputdir = os.path.join(self.scriptdir, "output")
-        self.outputfilename = "output.txt"
-        self.report_output = os.path.join(
-            self.scriptdir, "output", self.outputfilename
-        )
-        try:
-            os.stat(self.outputdir)
-        except:
-            os.mkdir(self.outputdir)
-            if self.config.debug:
-                print_debug("Created directory {}".format(self.outputdir))
         colorama.init()
 
     def create_dictobj(self, filename):
@@ -568,7 +559,7 @@ class masking:
             raise Exception("ERROR: Error adding engine {} to file {}".format(self.mskengname, self.enginelistfile))
 
     def list_engine(self):
-        csvdir = self.outputdir
+        error_condition = 0
         try:
             if os.path.exists(self.enginelistfile):
                 engine_list = self.create_dictobj(self.enginelistfile)
@@ -593,10 +584,15 @@ class masking:
                     )
                 print(" ")
             else:
-                raise Exception("ERROR: No Engine found in pool")
+                error_condition = 1
+                raise Exception ("ERROR: No Engine found in pool")
+
         except Exception as e:
             print_debug(str(e))
-            raise Exception("ERROR: Not able to open file {}".format(self.enginelistfile))
+            if error_condition == 1:
+                raise Exception("ERROR: No Engine found in pool")
+            else:
+                raise Exception("ERROR: Not able to open file {}".format(self.enginelistfile))
 
     def del_engine(self):
         newenginelist = []
@@ -3441,25 +3437,43 @@ class masking:
 
                 env_mapping[src_env_id] = src_env_name
 
-                srcapicall = "export"
-                srcapiresponse = self.post_api_response1(
-                    src_engine_name, srcapikey, srcapicall, envdef, port=80
+                otf_job_mapping_list_file = "{}/mappings/backup_{}.dat".format(
+                    bkp_main_dir, "otf_job_mapping"
                 )
+                with open(otf_job_mapping_list_file, "rb") as f1:
+                    otf_job_mapping_dict = pickle.load(f1)
 
-                env_bkp_dict = {
-                    "src_app_id": src_app_id,
-                    "src_app_name": src_app_name,
-                    "src_env_id": src_env_id,
-                    "src_env_name": src_env_name,
-                    "src_env_purpose": src_env_purpose,
-                    "srcapiresponse": srcapiresponse,
-                }
-                env_bkp_file = "{}/environments/backup_env_{}.dat".format(
-                    bkp_main_dir, src_env_id
-                )
-                with open(env_bkp_file, "wb") as fh:
-                    pickle.dump(env_bkp_dict, fh)
-                print("Created backup of environment {}".format(src_env_name))
+                # OTF env need to be handled separately due to possibility of DLPX-77471
+                otf_env = 0
+                for mapping in otf_job_mapping_dict:
+                    if otf_env == 1:
+                        break
+                    else:
+                        if mapping['src_env_name'] == src_env_name:
+                            otf_env = 1
+                            break
+                otf_env = 0
+                if otf_env == 1:
+                    print("{} is OTF job environment so cannot backup at this time".format(src_env_name));
+                else:
+                    srcapicall = "export"
+                    srcapiresponse = self.post_api_response1(
+                        src_engine_name, srcapikey, srcapicall, envdef, port=80
+                    )
+                    env_bkp_dict = {
+                        "src_app_id": src_app_id,
+                        "src_app_name": src_app_name,
+                        "src_env_id": src_env_id,
+                        "src_env_name": src_env_name,
+                        "src_env_purpose": src_env_purpose,
+                        "srcapiresponse": srcapiresponse,
+                    }
+                    env_bkp_file = "{}/environments/backup_env_{}.dat".format(
+                        bkp_main_dir, src_env_id
+                    )
+                    with open(env_bkp_file, "wb") as fh:
+                        pickle.dump(env_bkp_dict, fh)
+                    print("Created backup of environment {}".format(src_env_name))
 
             env_mapping_file = "{}/mappings/backup_env_mapping.dat".format(
                 bkp_main_dir
@@ -4522,6 +4536,112 @@ class masking:
 
         else:
             raise Exception("ERROR: Error connecting source engine {}".format(src_engine_name))
+
+    def duplicate_connectors(self):
+        src_engine_name = self.mskengname
+        srcapikey = self.get_auth_key(src_engine_name)
+        print_debug("srcapikey={}".format(srcapikey))
+        i = 0
+        if srcapikey is not None:
+
+            apicall = "environments?page_number=1&page_size=999"
+            connectorlist = []
+            duplicateconnlist = []
+
+            envresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+            if envresponse is None:
+                raise Exception("ERROR: Unable to pull environment details of engine {}".format(src_engine_name))
+            else:
+                for env in envresponse['responseList']:
+                    for conntype in ["database-connectors","file-connectors","mainframe-dataset-connectors"]:
+                        apicall = "{}?page_number=1&page_size=999&environment_id={}".format(conntype,
+                            env['environmentId'])
+                        connresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                        if connresponse is None:
+                            raise Exception("ERROR: Unable to pull connector details for connector type : {}".format(conntype))
+                        else:
+                            for connector in connresponse['responseList']:
+                                if conntype == "database-connectors":
+                                    connidparam = "databaseConnectorId"
+                                elif conntype == "file-connectors":
+                                    connidparam = "fileConnectorId"
+                                elif conntype == "mainframe-dataset-connectors":
+                                    connidparam = "mainframe-datasetConnectorId"
+
+                                connectordict = {'environmentId': env['environmentId'],
+                                                 'environmentName': env['environmentName'],
+                                                 'connectorId': connector[connidparam],
+                                                 'connectorName': connector['connectorName'],
+                                                 'connectorType': conntype}
+                                connectorlist.append(connectordict)
+
+                duplicate_conn_names = (
+                [connectorName for connectorName, count in Counter(x['connectorName'] for x in connectorlist).items() if
+                 count > 1])
+                for rec in connectorlist:
+                    if rec['connectorName'] in duplicate_conn_names:
+                        duplicateconnlist.append(rec)
+                sortedduplicateconnlist = sorted(duplicateconnlist, key=lambda k: k['connectorName'])
+
+                if len(sortedduplicateconnlist) > 0:
+                    if self.action == "list":
+                        print("{},{},{},{},{}".format("connectorId", "connectorName", "environmentId", "environmenNamed",
+                                                      "connectorType"))
+
+                prevname = None
+                newname = None
+                for conn in sortedduplicateconnlist:
+                    conntype =  conn['connectorType']
+                    if conntype == "database-connectors":
+                        connidparam = "databaseConnectorId"
+                    elif conntype == "file-connectors":
+                        connidparam = "fileConnectorId"
+                    elif conntype == "mainframe-dataset-connectors":
+                        connidparam = "mainframe-datasetConnectorId"
+
+                    newname = conn['connectorName']
+                    if newname != prevname:
+                        if i != 0:
+                            if self.action == "list":
+                                print(" ")
+                        else:
+                            i = i + 1
+                    prevname = newname
+                    if self.action == "list":
+                        print(
+                            "{},{},{},{},{}".format(conn['connectorId'], conn['connectorName'], conn['environmentId'],
+                                                 conn['environmentName'],conn['connectorType']))
+
+                    if self.action == "resolve":
+                        apicall = "{}/{}".format(conn['connectorType'],conn['connectorId'])
+                        connresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                        if connresponse is None:
+                            raise Exception("ERROR: Unable to pull details for connector {} - {} - {}".format(
+                                conn['connectorType'],conn['connectorId'],conn['connectorName']))
+                        else:
+                            originalConnectorName = connresponse['connectorName']
+                            renamedConnectorName = "{}{}{}".format(connresponse['connectorName'],
+                                                                              connresponse[connidparam],
+                                                                              connresponse['environmentId'])
+                            connresponse['connectorName'] = renamedConnectorName
+                            putconnresponse = self.put_api_response(src_engine_name, srcapikey, apicall, connresponse)
+                            if putconnresponse is None:
+                                print(
+                                    "ERROR: Renaming connector with Id:{} and Name:{} to {} failed.".format(connresponse[connidparam],
+                                                                                     originalConnectorName,
+                                                                                     connresponse['connectorName']))
+                            else:
+                                print(
+                                    "Success: Renamed connector with Id:{} and Name:{} to {}".format(connresponse[connidparam],
+                                                                                      originalConnectorName,
+                                                                                      connresponse['connectorName']))
+            # if i == 0:
+            if i == 0:
+                print("No duplicate connector names found.")
+            print(" ")
+
+        else:
+            raise Exception("ERROR: Error connecting masking engine {}".format(src_engine_name))
 
     def gen_otf_job_mappings(
         self, src_engine_name, src_env_name, sync_scope=None, jobname=None

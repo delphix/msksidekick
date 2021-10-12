@@ -118,3 +118,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.4]     - 2021-30-08
 - Feature : Added stderr to all module when exit code is 1
+
+## [2.0.5-rc1] - 2021-22-09
+- Bugfix  : When msksidekick called with full path from different location, output directory is not recognized
+
+## [2.0.5-rc2] - 2021-01-10
+- Feature : Find and resolve duplicate connector names
+
+## [2.0.5-rc3] - 2021-02-10
+- Bugfix : Find and resolve duplicate connector names for mainframe

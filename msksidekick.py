@@ -34,19 +34,44 @@ import collections
 import os
 import sys
 import traceback
-
 import click
-import atexit
 import mskpkg.globals as globals
+# import sqlite3
+# import atexit
+
 from mskpkg.DxLogging import print_debug
 from mskpkg.banner import banner
 from mskpkg.masking import masking
 from mskpkg.virtualization import virtualization
 
+from pathlib import Path
+
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.4"
-output_dir = "{}/output".format(os.path.dirname(os.path.realpath(__file__)))
+VERSION = "2.0.5-rc3"
+# con = sqlite3.connect('msksidekick.db')
+# cur = con.cursor()
+
+# script_dir = os.path.dirname(os.path.realpath(__file__))
+# script_dir = getattr(
+#     sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__))
+# )
+
+# script_dir = Path(__file__).resolve().parent
+
+if getattr(sys, 'frozen', False):
+    # If the application is run as a bundle, the PyInstaller bootloader
+    # extends the sys module by a flag frozen=True and sets the app
+    # path into variable _MEIPASS'.
+    # script_dir = sys._MEIPASS
+    script_dir = os.path.dirname(sys.executable)
+
+else:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+output_dir = "{}/output".format(script_dir)
+# print(script_dir)
+# print(output_dir)
 try:
     # print("output_dir = {}".format(output_dir))
     os.chdir(os.path.dirname(os.path.realpath(__file__)))
@@ -181,12 +206,9 @@ def add_engine(config, mskengname, totalgb, systemgb, poolname):
     """This module will add engine to pool"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print_debug("Verbose mode enabled")
+        click.echo("Verbose mode enabled")
 
     globals.arguments["--debug"] = config.debug
     globals.arguments["--config"] = "./dxtools.conf"
@@ -207,12 +229,16 @@ def add_engine(config, mskengname, totalgb, systemgb, poolname):
 @pass_config
 def list_engine(config):
     """This module will list engine from pool"""
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
 
-    mskai = masking(config, noparam="noparam")
-    mskai.list_engine()
-    sys.exit(0)
+    try:
+        mskai = masking(config, noparam="noparam")
+        mskai.list_engine()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
 
 
 # del_engine
@@ -227,6 +253,7 @@ def list_engine(config):
 @pass_config
 def del_engine(config, mskengname):
     """This module will remove engine from pool"""
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
         click.echo("mskengname = {0}".format(mskengname))
@@ -263,15 +290,12 @@ def del_engine(config, mskengname):
 @pass_config
 def pull_joblist(config, mskengname, username, password, protocol):
     """This module will pull joblist from engine"""
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
         click.echo("mskengname = {0}".format(mskengname))
         click.echo("username   = {0}".format(username))
         click.echo("protocol   = {0}".format(protocol))
-
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
 
     print_banner()
     mskai = masking(
@@ -313,17 +337,14 @@ def pull_joblist(config, mskengname, username, password, protocol):
 @click.option("--poolname", default="Default", help="Pool name of engine")
 @pass_config
 def pull_currjoblist(
-    config, jobname, envname, username, password, protocol, poolname
+        config, jobname, envname, username, password, protocol, poolname
 ):
     """This module will pull current job execution list from all engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" jobname  = {0}".format(jobname))
         print(" envname  = {0}".format(envname))
         print(" username = {0}".format(username))
@@ -355,6 +376,7 @@ def pull_currjoblist(
 @pass_config
 def gen_dxtools_conf(config, protocol):
     """This module will generate dxtools conf file for engine"""
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
 
@@ -422,26 +444,23 @@ def gen_dxtools_conf(config, protocol):
 )
 @pass_config
 def sync_job(
-    config,
-    srcmskengname,
-    srcenvname,
-    srcjobname,
-    tgtmskengname,
-    tgtenvname,
-    globalobjsync,
-    username,
-    password,
-    protocol,
+        config,
+        srcmskengname,
+        srcenvname,
+        srcjobname,
+        tgtmskengname,
+        tgtenvname,
+        globalobjsync,
+        username,
+        password,
+        protocol,
 ):
     """This module will sync particular job between 2 engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" srcmskengname = {0}".format(srcmskengname))
         print(" srcenvname    = {0}".format(srcenvname))
         print(" srcjobname    = {0}".format(srcjobname))
@@ -521,25 +540,22 @@ def sync_job(
 )
 @pass_config
 def sync_env(
-    config,
-    srcmskengname,
-    srcenvname,
-    tgtmskengname,
-    tgtenvname,
-    globalobjsync,
-    username,
-    password,
-    protocol,
+        config,
+        srcmskengname,
+        srcenvname,
+        tgtmskengname,
+        tgtenvname,
+        globalobjsync,
+        username,
+        password,
+        protocol,
 ):
     """This module will sync particular env between 2 engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" srcmskengname = {0}".format(srcmskengname))
         print(" srcenvname    = {0}".format(srcenvname))
         print(" tgtmskengname = {0}".format(tgtmskengname))
@@ -618,25 +634,22 @@ def sync_env(
 )
 @pass_config
 def sync_eng(
-    config,
-    srcmskengname,
-    tgtmskengname,
-    globalobjsync,
-    username,
-    password,
-    protocol,
-    delextra,
-    excludenonadmin,
+        config,
+        srcmskengname,
+        tgtmskengname,
+        globalobjsync,
+        username,
+        password,
+        protocol,
+        delextra,
+        excludenonadmin,
 ):
     """This module will complete sync 2 engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" srcmskengname   = {0}".format(srcmskengname))
         print(" tgtmskengname   = {0}".format(tgtmskengname))
         print(" globalobjsync   = {0}".format(globalobjsync))
@@ -704,23 +717,20 @@ def sync_eng(
 )
 @pass_config
 def sync_globalobj(
-    config,
-    srcmskengname,
-    tgtmskengname,
-    globalobjsync,
-    username,
-    password,
-    protocol,
+        config,
+        srcmskengname,
+        tgtmskengname,
+        globalobjsync,
+        username,
+        password,
+        protocol,
 ):
     """This module will sync global objects between 2 engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" srcmskengname = {0}".format(srcmskengname))
         print(" tgtmskengname = {0}".format(tgtmskengname))
         print(" globalobjsync = {0}".format(globalobjsync))
@@ -775,17 +785,14 @@ def sync_globalobj(
 )
 @pass_config
 def cleanup_eng(
-    config, mskengname, username, password, protocol, includeadmin
+        config, mskengname, username, password, protocol, includeadmin
 ):
     """This module will complete cleanup engine for fresh start"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mskengname    = {0}".format(mskengname))
         print(" username      = {0}".format(username))
         print(" protocol      = {0}".format(protocol))
@@ -863,26 +870,23 @@ def cleanup_eng(
 )
 @pass_config
 def run_job(
-    config,
-    jobname,
-    envname,
-    run,
-    mock,
-    username,
-    password,
-    protocol,
-    dxtoolkit_path,
-    poolname,
+        config,
+        jobname,
+        envname,
+        run,
+        mock,
+        username,
+        password,
+        protocol,
+        dxtoolkit_path,
+        poolname,
 ):
     """This module will execute masking job on best candidate engine"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" jobname        = {0}".format(jobname))
         print(" envname        = {0}".format(envname))
         print(" run            = {0}".format(run))
@@ -926,7 +930,9 @@ def run_job(
             #     )
             # )
             # sys.exit(1)
-            raise Exception("ERROR: Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname, chk_status))
+            raise Exception(
+                "ERROR: Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname,
+                                                                                                     chk_status))
 
     except Exception as e:
         print_exception_exit1()
@@ -942,7 +948,7 @@ def run_job(
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
         aive = virtualization(
             config,
-            config_file_path="./dxtools.conf",
+            config_file_path="{}/dxtools.conf".format(scriptdir),
             scriptdir=scriptdir,
             outputdir=outputdir,
             protocol=protocol,
@@ -1006,12 +1012,9 @@ def test_connectors(config, mskengname, username, password, protocol):
     """This module will help to test all connectors"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mskengname = {0}".format(mskengname))
         print(" username      = {0}".format(username))
         print(" protocol      = {0}".format(protocol))
@@ -1066,22 +1069,19 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
     """This module will find green engines"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mock     = {0}".format(mock))
         print(" username = {0}".format(username))
         print(" protocol      = {0}".format(protocol))
         print(" dxtoolkit_path = {0}".format(dxtoolkit_path))
 
     globals.arguments["--debug"] = config.debug
-    globals.arguments["--config"] = "./dxtools.conf"
+    globals.arguments["--config"] = "{}/dxtools.conf".format(script_dir)
     globals.arguments["--all"] = True
     globals.arguments["--engine"] = None
-    globals.arguments["--logdir"] = "./dx_skel.log"
+    globals.arguments["--logdir"] = "{}/dx_skel.log".format(output_dir)
     globals.arguments["--parallel"] = None
     globals.arguments["--poll"] = "10"
     globals.arguments["--version"] = False
@@ -1110,7 +1110,7 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
         print_debug("dxtoolkit_path: {}".format(dxtoolkit_path))
         aive = virtualization(
             config,
-            config_file_path="./dxtools.conf",
+            config_file_path="{}/dxtools.conf".format(script_dir),
             scriptdir=scriptdir,
             outputdir=outputdir,
             protocol=protocol,
@@ -1169,17 +1169,14 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
 )
 @pass_config
 def offline_backup_eng(
-    config, mskengname, username, password, protocol, backup_dir
+        config, mskengname, username, password, protocol, backup_dir
 ):
     """This module will offline backup engine"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mskengname    = {0}".format(mskengname))
         print(" username      = {0}".format(username))
         print(" protocol      = {0}".format(protocol))
@@ -1230,17 +1227,14 @@ def offline_backup_eng(
 )
 @pass_config
 def offline_restore_eng(
-    config, mskengname, username, password, protocol, backup_dir
+        config, mskengname, username, password, protocol, backup_dir
 ):
     """This module will offline restore engine from backups"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mskengname    = {0}".format(mskengname))
         print(" username      = {0}".format(username))
         print(" protocol      = {0}".format(protocol))
@@ -1297,17 +1291,14 @@ def offline_restore_eng(
 )
 @pass_config
 def offline_restore_env(
-    config, mskengname, envname, username, password, protocol, backup_dir
+        config, mskengname, envname, username, password, protocol, backup_dir
 ):
     """This module will offline restore engine from backups"""
 
     print_banner()
-    if config.debug:
-        globals.initialize()
-        globals.debug = config.debug
-
+    globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
-        print(" Verbose mode enabled")
+        click.echo("Verbose mode enabled")
         print(" mskengname    = {0}".format(mskengname))
         print(" envname       = {0}".format(envname))
         print(" username      = {0}".format(username))
@@ -1328,6 +1319,69 @@ def offline_restore_env(
     except Exception as e:
         print_exception_exit1()
     sys.exit(0)
+
+
+# duplicate_connectors
+@cli.command()
+@click.option(
+    "--mskengname",
+    default="",
+    prompt="Enter Masking Engine name",
+    help="Masking Engine name",
+)
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking mskaiagnt username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    help="Masking mskaiagnt password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@click.option(
+    "--action",
+    type=click.Choice(['list', 'resolve']),
+    default="list",
+    help="List Connector | Rename conflicting connector names ( All conflicting connector names will be renamed )",
+)
+@pass_config
+def duplicate_connectors(
+        config, mskengname, username, password, protocol, action
+):
+    """This module will offline backup engine"""
+
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" mskengname    = {0}".format(mskengname))
+        print(" username      = {0}".format(username))
+        print(" protocol      = {0}".format(protocol))
+        print(" action        = {0}".format(action))
+        print(" ")
+
+    try:
+        mskai = masking(
+            config,
+            mskengname=mskengname,
+            username=username,
+            password=password,
+            protocol=protocol,
+            action=action,
+        )
+        mskai.duplicate_connectors()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
+    sys.exit(0)
+
 
 
 if __name__ == "__main__":
