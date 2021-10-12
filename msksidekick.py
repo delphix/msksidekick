@@ -48,7 +48,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.5-rc2"
+VERSION = "2.0.5-rc3"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 

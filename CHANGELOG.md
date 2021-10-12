@@ -124,3 +124,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.5-rc2] - 2021-01-10
 - Feature : Find and resolve duplicate connector names
+
+## [2.0.5-rc3] - 2021-02-10
+- Bugfix : Find and resolve duplicate connector names for mainframe

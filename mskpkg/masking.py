@@ -4566,7 +4566,7 @@ class masking:
                                 elif conntype == "file-connectors":
                                     connidparam = "fileConnectorId"
                                 elif conntype == "mainframe-dataset-connectors":
-                                    connidparam = "mainframeDatasetConnectorId"
+                                    connidparam = "mainframe-datasetConnectorId"
 
                                 connectordict = {'environmentId': env['environmentId'],
                                                  'environmentName': env['environmentName'],
@@ -4597,7 +4597,7 @@ class masking:
                     elif conntype == "file-connectors":
                         connidparam = "fileConnectorId"
                     elif conntype == "mainframe-dataset-connectors":
-                        connidparam = "mainframeDatasetConnectorId"
+                        connidparam = "mainframe-datasetConnectorId"
 
                     newname = conn['connectorName']
                     if newname != prevname:
