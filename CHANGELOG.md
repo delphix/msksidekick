@@ -127,3 +127,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.5-rc3] - 2021-02-10
 - Bugfix : Find and resolve duplicate connector names for mainframe
+
+## [2.0.5] - 2021-12-10
+- Bugfix  : When msksidekick called with full path from different location, output directory is not recognized
+- Feature : Find and resolve duplicate connector names
