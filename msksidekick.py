@@ -206,12 +206,13 @@ def add_engine(config, mskengname, totalgb, systemgb, poolname):
     """This module will add engine to pool"""
 
     print_banner()
+    scriptdir = os.path.dirname(os.path.abspath(__file__))
     globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
 
     globals.arguments["--debug"] = config.debug
-    globals.arguments["--config"] = "./dxtools.conf"
+    globals.arguments["--config"] = "{}/dxtools.conf".format(scriptdir)
 
     mskai = masking(
         config,
@@ -884,6 +885,7 @@ def run_job(
     """This module will execute masking job on best candidate engine"""
 
     print_banner()
+    scriptdir = os.path.dirname(os.path.abspath(__file__))
     globals.initialize(config.debug, config.verbose, script_dir)
     if config.verbose or config.debug:
         click.echo("Verbose mode enabled")
@@ -897,7 +899,7 @@ def run_job(
         print(" poolname       = {0}".format(poolname))
 
     globals.arguments["--debug"] = config.debug
-    globals.arguments["--config"] = "./dxtools.conf"
+    globals.arguments["--config"] = "{}/dxtools.conf".format(scriptdir)
     globals.arguments["--all"] = True
     globals.arguments["--engine"] = None
     globals.arguments["--logdir"] = "./dx_skel.log"
