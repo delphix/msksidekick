@@ -4643,6 +4643,104 @@ class masking:
         else:
             raise Exception("ERROR: Error connecting masking engine {}".format(src_engine_name))
 
+    def duplicate_mskjobs(self):
+        src_engine_name = self.mskengname
+        srcapikey = self.get_auth_key(src_engine_name)
+        print_debug("srcapikey={}".format(srcapikey))
+        i = 0
+        if srcapikey is not None:
+
+            apicall = "environments?page_number=1&page_size=999"
+            mskjoblist = []
+            duplicatemskjoblist = []
+
+            envresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+            if envresponse is None:
+                raise Exception("ERROR: Unable to pull environment details of engine {}".format(src_engine_name))
+            else:
+                for env in envresponse['responseList']:
+                    apicall = "masking-jobs?page_number=1&page_size=999&environment_id={}".format(env['environmentId'])
+                    mskjobsresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                    if mskjobsresponse is None:
+                        raise Exception("ERROR: Unable to pull Masking jobs for environment : {}".format(env['environmentId']))
+                    else:
+                        for mskjob in mskjobsresponse['responseList']:
+                            mskjobdict = {'environmentId': env['environmentId'],
+                                          'environmentName': env['environmentName'],
+                                          'jobName': mskjob['jobName'],
+                                          'maskingJobId': mskjob['maskingJobId']}
+                            mskjoblist.append(mskjobdict)
+
+                duplicate_mskjob_names = (
+                    [jobName for jobName, count in Counter(x['jobName'] for x in mskjoblist).items() if
+                     count > 1])
+                for rec in mskjoblist:
+                    if rec['jobName'] in duplicate_mskjob_names:
+                        duplicatemskjoblist.append(rec)
+                sortedduplicatemskjoblist = sorted(duplicatemskjoblist, key=lambda k: k['jobName'])
+
+                if len(sortedduplicatemskjoblist) > 0:
+                    if self.action == "list":
+                        print("{},{},{},{}".format("maskingJobId", "jobName", "environmentId", "environmentName"))
+
+                prevname = None
+                newname = None
+                for mskjob in sortedduplicatemskjoblist:
+                    newname = mskjob['jobName']
+                    if newname != prevname:
+                        if i != 0:
+                            if self.action == "list":
+                                print(" ")
+                        else:
+                            i = i + 1
+                    prevname = newname
+                    if self.action == "list":
+                        print(
+                            "{},{},{},{}".format(mskjob['maskingJobId'], mskjob['jobName'], mskjob['environmentId'],
+                                                    mskjob['environmentName']))
+
+                    if self.action == "resolve":
+                        apicall = "masking-jobs/{}".format(mskjob['maskingJobId'])
+                        mskjobresponse = self.get_api_response(src_engine_name, srcapikey, apicall)
+                        if mskjobresponse is None:
+                            raise Exception("ERROR: Unable to pull details for Masking Job {} - {} in environment {}".format(
+                                mskjob['maskingJobId'],mskjob['jobName'],mskjob['environmentName']))
+                        else:
+                            print("INFO: Before Delete - Job Details : {}".format(mskjobresponse))
+                            originalMskjobName = mskjobresponse['jobName']
+                            renamedMskjobName = "{}{}{}".format(mskjobresponse['jobName'],
+                                                                mskjobresponse['maskingJobId'],
+                                                                mskjob['environmentId'])
+                            mskjobresponse['jobName'] = renamedMskjobName
+
+                            mskjobdelresponse = self.del_api_response(src_engine_name, srcapikey, apicall)
+                            if mskjobdelresponse is None:
+                                print(
+                                "ERROR: Deleting job with Id:{} and Name:{}".format(mskjobresponse['maskingJobId'],
+                                                                                                      originalMskjobName))
+                            else:
+                                print(
+                                "Success: Deleted masking job with Id:{} and Name:{}".format(mskjobresponse['maskingJobId'],
+                                                                                               originalMskjobName))
+
+                            apicall = "masking-jobs"
+                            createmskjobresponse = self.post_api_response(src_engine_name, srcapikey, apicall, mskjobresponse)
+                            if createmskjobresponse is None:
+                                print(
+                                    "ERROR: Unable to create job with Name:{}.".format(mskjobresponse['jobName']))
+                            else:
+                                print(
+                                    "Success: Created new masking job for Id:{} and Name:{} as {} and new Id".format(mskjobresponse['maskingJobId'],
+                                                                                                       originalMskjobName,
+                                                                                                       mskjobresponse['jobName']))
+            # if i == 0:
+            if i == 0:
+                print("No duplicate masking job names found.")
+            print(" ")
+
+        else:
+            raise Exception("ERROR: Error connecting masking engine {}".format(src_engine_name))
+
     def gen_otf_job_mappings(
         self, src_engine_name, src_env_name, sync_scope=None, jobname=None
     ):

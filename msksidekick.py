@@ -48,7 +48,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.5"
+VERSION = "2.0.6-rc1"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -201,7 +201,7 @@ def version(config):
 #            type=click.Choice(['Y', 'N'], case_sensitive=True),
 #            help='Add Engine to Pool')
 @pass_config
-# def add_engine(config, mskengname, totalgb, systemgb, mskaiagntuser, enabled):
+# def add_engine(config, mskengname, totalgb, systemgb, msksidekickuser, enabled):
 def add_engine(config, mskengname, totalgb, systemgb, poolname):
     """This module will add engine to pool"""
 
@@ -276,12 +276,12 @@ def del_engine(config, mskengname):
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -322,13 +322,13 @@ def pull_joblist(config, mskengname, username, password, protocol):
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
     default="mskenv",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -431,12 +431,12 @@ def gen_dxtools_conf(config, protocol):
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -527,12 +527,12 @@ def sync_job(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -609,12 +609,12 @@ def sync_env(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -704,12 +704,12 @@ def sync_eng(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -766,12 +766,12 @@ def sync_globalobj(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -848,12 +848,12 @@ def cleanup_eng(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -997,12 +997,12 @@ def run_job(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -1041,12 +1041,12 @@ def test_connectors(config, mskengname, username, password, protocol):
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--mock",
@@ -1157,12 +1157,12 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -1215,12 +1215,12 @@ def offline_backup_eng(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -1284,7 +1284,7 @@ def offline_restore_eng(
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -1335,12 +1335,12 @@ def offline_restore_env(
     "--username",
     "-u",
     prompt="Enter Masking username",
-    help="Masking mskaiagnt username to connect masking engines",
+    help="Masking msksidekick username to connect masking engines",
 )
 @click.password_option(
     "--password",
     "-p",
-    help="Masking mskaiagnt password to connect masking engines",
+    help="Masking msksidekick password to connect masking engines",
 )
 @click.option(
     "--protocol",
@@ -1357,7 +1357,7 @@ def offline_restore_env(
 def duplicate_connectors(
         config, mskengname, username, password, protocol, action
 ):
-    """This module will offline backup engine"""
+    """This module will list/resolve duplicate connector names in engine"""
 
     print_banner()
     globals.initialize(config.debug, config.verbose, script_dir)
@@ -1384,7 +1384,66 @@ def duplicate_connectors(
         print_exception_exit1()
     sys.exit(0)
 
+# duplicate_mskjobs
+@cli.command()
+@click.option(
+    "--mskengname",
+    default="",
+    prompt="Enter Masking Engine name",
+    help="Masking Engine name",
+)
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking msksidekick username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    help="Masking msksidekick password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@click.option(
+    "--action",
+    type=click.Choice(['list', 'resolve']),
+    default="list",
+    help="List Connector | Rename conflicting masking job names ( All conflicting job names will be renamed )",
+)
+@pass_config
+def duplicate_mskjobs(
+        config, mskengname, username, password, protocol, action
+):
+    """This module will list/resolve duplicate masking job names in engine"""
 
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" mskengname    = {0}".format(mskengname))
+        print(" username      = {0}".format(username))
+        print(" protocol      = {0}".format(protocol))
+        print(" action        = {0}".format(action))
+        print(" ")
+
+    try:
+        mskai = masking(
+            config,
+            mskengname=mskengname,
+            username=username,
+            password=password,
+            protocol=protocol,
+            action=action,
+        )
+        mskai.duplicate_mskjobs()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
+    sys.exit(0)
 
 if __name__ == "__main__":
     cli()
