@@ -24,7 +24,7 @@ jobs:
         else
           exit 1
         fi
-        SOURCE_TAG=$(cat ./msksidekick.py|grep "VERSION = "|cut -d"=" -f2|sed 's/"//g'|sed 's/ //g')
+        SOURCE_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
         FILENAME="msksidekick-${SOURCE_TAG}-linux.tar.gz"
         echo SOURCE_TAG=$SOURCE_TAG
         echo FILENAME=$FILENAME
