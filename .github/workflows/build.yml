@@ -40,11 +40,9 @@ jobs:
         ls -l dist/
         mkdir msksidekick
         cp dist/msksidekick msksidekick/msksidekick
-        cd msksidekick
         echo FILENAME=${{ env.FILENAME }}
         tar czvf ${{ env.FILENAME }} msksidekick
         ls -l
-        cd ..
     - name: Upload centos 7
       uses: actions/upload-artifact@v1
       with:
