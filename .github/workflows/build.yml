@@ -26,8 +26,11 @@ jobs:
         fi
         SOURCE_TAG=$(cat ./msksidekick.py|grep "VERSION = "|cut -d"=" -f2|sed 's/"//g'|sed 's/ //g')
         FILENAME="msksidekick-${SOURCE_TAG}-linux.tar.gz"
+        echo SOURCE_TAG=$SOURCE_TAG
+        echo FILENAME=$FILENAME
         echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
         echo FILENAME=$FILENAME >> $GITHUB_ENV
+
     - name: rename toolkit
       run: |
         ls -l
@@ -36,6 +39,7 @@ jobs:
         mkdir msksidekick
         cp dist/msksidekick msksidekick/msksidekick
         cd msksidekick
+        echo FILENAME=${{ env.FILENAME }}
         tar czvf ${{ env.FILENAME }} msksidekick
         ls -l
     - name: Upload centos 7
