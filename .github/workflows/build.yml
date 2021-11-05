@@ -24,12 +24,12 @@ jobs:
         else
           exit 1
         fi
-        SOURCE_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-        SOURCE_TAG=$(echo $SOURCE_TAG|tr -d "\n")
         FILENAME="msksidekick-${SOURCE_TAG}-linux.tar.gz"
-        FILENAME=$(echo $FILENAME|tr -d "\n")
+        VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
+        FILEVERSION="msksidekick-${VERSION_TAG}-linux.tar.gz"
         echo SOURCE_TAG=$SOURCE_TAG
         echo FILENAME=$FILENAME
+        echo FILEVERSION=$FILEVERSION
         echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
         echo FILENAME=$FILENAME >> $GITHUB_ENV
 
