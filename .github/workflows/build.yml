@@ -24,7 +24,8 @@ jobs:
         else
           exit 1
         fi
-        FILENAME="msksidekick-${SOURCE_TAG}-redhat7.tar.gz"
+        SOURCE_TAG=$(cat ./msksidekick.py|grep "VERSION = "|cut -d"=" -f2|sed 's/"//g'|sed 's/ //g')
+        FILENAME="msksidekick-${SOURCE_TAG}_linux.tar.gz"
         echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
         echo FILENAME=$FILENAME >> $GITHUB_ENV
     - name: rename toolkit
@@ -34,7 +35,8 @@ jobs:
         ls -l dist/
         mkdir msksidekick
         cp dist/msksidekick msksidekick/msksidekick
-        tar czvf ${{ env.FILENAME }} msksidekick/
+        cd msksidekick
+        tar czvf ${{ env.FILENAME }} msksidekick
     - name: Upload centos 7
       uses: actions/upload-artifact@v1
       with:
