@@ -134,3 +134,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.6-rc1] - 2021-02-11
 - Feature : Find and resolve duplicate masking job names
+
+## [2.0.6-rc2] - 2021-17-11
+- Bugfix  : Avoid duplicate submission of job
+- Feature : Display QUEUED job status
+- Feature : Added executionId to pull job status

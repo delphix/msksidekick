@@ -839,7 +839,7 @@ class masking:
                 filejobspec = "{},{}".format(env_job[5], env_job[1])
                 if filejobspec == reqjobspec:
                     #r = 1
-                    r = env_job[6]
+                    r = "{}:{}".format(env_job[6],env_job[7])
                     return r
                     break
                 line = fp.readline()
@@ -1346,23 +1346,26 @@ class masking:
                                     "ERROR: Execution of Masking job# {} on Engine {} failed".format(
                                         jobid, engine_name))
                         else:
+                            chk_status_arr = chk_status.split(":")
+                            job_status = chk_status_arr[0]
+                            job_engine_name = chk_status_arr[1]
                             print_red_on_white = lambda x: cprint(
                                 x, "red", "on_white"
                             )
                             print_red_on_white(
-                                " Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
+                                " Job {} on Env {} is already {} on engine {}. Please retry later".format(
                                     self.jobname,
                                     self.envname,
-                                    engine_name,
-                                    chk_status,
+                                    job_status,
+                                    job_engine_name
                                 )
                             )
                             raise Exception(
-                                "ERROR: Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
+                                "ERROR: Job {} on Env {} is already {} on engine {}. Please retry later".format(
                                     self.jobname,
                                     self.envname,
-                                    engine_name,
-                                    chk_status,))
+                                    chk_status,
+                                    engine_name,))
                         break
                     else:
                         print_green_on_white = lambda x: cprint(
@@ -1569,7 +1572,18 @@ class masking:
                                     jobid, executionId, engine_name
                                 )
                             )
+                        elif job_exec_response["status"] == "QUEUED":
+                            executionId = job_exec_response["executionId"]
+                            print_green_on_white = lambda x: cprint(
+                                x, "blue", "on_white"
+                            )
+                            print_green_on_white(
+                                " Execution of Masking job# {} with execution ID {} on Engine {} is QUEUED".format(
+                                    jobid, executionId, engine_name
+                                )
+                            )
                         else:
+                            print(job_exec_response)
                             print_red_on_white = lambda x: cprint(
                                 x, "red", "on_white"
                             )
@@ -1594,10 +1608,13 @@ class masking:
                             "ERROR: Execution of Masking job# {} on Engine {} failed.".format(
                                 jobid, engine_name))
                 else:
+                    chk_status_arr = chk_status.split(":")
+                    job_status = chk_status_arr[0]
+                    job_engine_name = chk_status_arr[1]
                     print_red_on_white = lambda x: cprint(x, "red", "on_white")
                     print_red_on_white(
-                        " Job {} on Env {} is already running on engine {} - Check Status {}. Please retry later".format(
-                            self.jobname, self.envname, engine_name, chk_status
+                        " Job {} on Env {} is already {} on engine {}. Please retry later".format(
+                            self.jobname, self.envname, job_status, job_engine_name
                         )
                     )
             print(" ")
@@ -1847,7 +1864,7 @@ class masking:
                                 latestexecid["status"]
                             )
                         )
-                        if latestexecid["status"] == "RUNNING":
+                        if latestexecid["status"] == "RUNNING" or latestexecid["status"] == "QUEUED":
                             fe.write(
                                 "{},{},{},{},{},{},{},{}\n".format(
                                     joblist["maskingJobId"],
@@ -1970,7 +1987,7 @@ class masking:
                 os.remove(self.jobexeclistfile)
             fe = open(self.jobexeclistfile, "w")
             fe.write(
-                "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
                     "jobid",
                     "jobname",
                     "jobmaxmemory",
@@ -1978,6 +1995,7 @@ class masking:
                     "environmentid",
                     "environmentname",
                     "ip_address",
+                    "executionId",
                     "jobstatus",
                     "rowsMasked",
                     "rowsTotal",
@@ -2036,7 +2054,10 @@ class masking:
                                 print_debug(
                                     "latestexecid = {}".format(latestexecid)
                                 )
-
+                                if "executionId" in latestexecid:
+                                    lastexecid = latestexecid["executionId"]
+                                else:
+                                    lastexecid = 0
                                 if self.jobname and self.envname:
                                     print_debug("By Job")
                                     if (
@@ -2046,7 +2067,7 @@ class masking:
                                     ):
                                         fe = open(self.jobexeclistfile, "a")
                                         fe.write(
-                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
                                                 joblist["maskingJobId"],
                                                 joblist["jobName"],
                                                 joblist["maxMemory"],
@@ -2054,6 +2075,7 @@ class masking:
                                                 envname["environmentId"],
                                                 envname["environmentName"],
                                                 engine_name,
+                                                lastexecid,
                                                 latestexecid["status"],
                                                 "-"
                                                 if latestexecid["status"]
@@ -2087,7 +2109,7 @@ class masking:
                                     ):
                                         fe = open(self.jobexeclistfile, "a")
                                         fe.write(
-                                            "{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
+                                            "{},{},{},{},{},{},{},{},{},{},{},{},{}\n".format(
                                                 joblist["maskingJobId"],
                                                 joblist["jobName"],
                                                 joblist["maxMemory"],
@@ -2095,6 +2117,7 @@ class masking:
                                                 envname["environmentId"],
                                                 envname["environmentName"],
                                                 engine_name,
+                                                lastexecid,
                                                 latestexecid["status"],
                                                 "-"
                                                 if latestexecid["status"]
@@ -2142,10 +2165,11 @@ class masking:
             )
         )
         print(
-            "{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}".format(
+            "{0:>1}{1:<35}{2:<7}{3:13}{4:25}{5:25}{6:<12}{7:>11}{8:>11}{9:>32}{10:>20}".format(
                 " ",
                 "Engine name",
                 "Job Id",
+                "Execution Id",
                 "Job Name",
                 "Env Name",
                 "Job Status",
@@ -2159,10 +2183,11 @@ class masking:
         jobexec_list = self.create_dictobj(self.jobexeclistfile)
         for row in jobexec_list:
             print(
-                "{0:>1}{1:<35}{2:<7}{3:25}{4:<25}{5:<12}{6:>11}{7:>11}{8:>32}{9:>20}".format(
+                "{0:>1}{1:<35}{2:<7}{3:13}{4:25}{5:25}{6:<12}{7:>11}{8:>11}{9:>32}{10:>20}".format(
                     " ",
                     row["ip_address"],
                     row["jobid"],
+                    row["executionId"],
                     row["jobname"],
                     row["environmentname"],
                     row["jobstatus"],

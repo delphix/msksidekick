@@ -48,7 +48,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.6-rc1"
+VERSION = "2.0.6-rc2"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -932,9 +932,13 @@ def run_job(
             #     )
             # )
             # sys.exit(1)
+            chk_status_arr = chk_status.split(":")
+            job_status = chk_status_arr[1]
+            job_engine_name = chk_status_arr[0]
             raise Exception(
-                "ERROR: Job {} on Env {} is already running on engine {}. Please retry later".format(jobname, envname,
-                                                                                                     chk_status))
+                "ERROR: Job {} on Env {} is already {} on engine {}. Please retry later".format(jobname, envname,
+                                                                                                job_status,
+                                                                                                job_engine_name))
 
     except Exception as e:
         print_exception_exit1()
