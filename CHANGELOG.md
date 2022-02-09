@@ -139,3 +139,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Bugfix  : Avoid duplicate submission of job
 - Feature : Display QUEUED job status
 - Feature : Added executionId to pull job status
+
+## [2.0.6] - 2022-02-08
+- Feature : Sync environment only if revisionhash is different
