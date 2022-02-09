@@ -36,6 +36,7 @@ import sys
 import traceback
 import click
 import mskpkg.globals as globals
+
 # import sqlite3
 # import atexit
 
@@ -48,7 +49,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.6-rc2"
+VERSION = "2.0.6"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -59,7 +60,7 @@ VERSION = "2.0.6-rc2"
 
 # script_dir = Path(__file__).resolve().parent
 
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     # If the application is run as a bundle, the PyInstaller bootloader
     # extends the sys module by a flag frozen=True and sets the app
     # path into variable _MEIPASS'.
@@ -337,9 +338,7 @@ def pull_joblist(config, mskengname, username, password, protocol):
 )
 @click.option("--poolname", default="Default", help="Pool name of engine")
 @pass_config
-def pull_currjoblist(
-        config, jobname, envname, username, password, protocol, poolname
-):
+def pull_currjoblist(config, jobname, envname, username, password, protocol, poolname):
     """This module will pull current job execution list from all engines"""
 
     print_banner()
@@ -445,16 +444,16 @@ def gen_dxtools_conf(config, protocol):
 )
 @pass_config
 def sync_job(
-        config,
-        srcmskengname,
-        srcenvname,
-        srcjobname,
-        tgtmskengname,
-        tgtenvname,
-        globalobjsync,
-        username,
-        password,
-        protocol,
+    config,
+    srcmskengname,
+    srcenvname,
+    srcjobname,
+    tgtmskengname,
+    tgtenvname,
+    globalobjsync,
+    username,
+    password,
+    protocol,
 ):
     """This module will sync particular job between 2 engines"""
 
@@ -541,15 +540,15 @@ def sync_job(
 )
 @pass_config
 def sync_env(
-        config,
-        srcmskengname,
-        srcenvname,
-        tgtmskengname,
-        tgtenvname,
-        globalobjsync,
-        username,
-        password,
-        protocol,
+    config,
+    srcmskengname,
+    srcenvname,
+    tgtmskengname,
+    tgtenvname,
+    globalobjsync,
+    username,
+    password,
+    protocol,
 ):
     """This module will sync particular env between 2 engines"""
 
@@ -635,15 +634,15 @@ def sync_env(
 )
 @pass_config
 def sync_eng(
-        config,
-        srcmskengname,
-        tgtmskengname,
-        globalobjsync,
-        username,
-        password,
-        protocol,
-        delextra,
-        excludenonadmin,
+    config,
+    srcmskengname,
+    tgtmskengname,
+    globalobjsync,
+    username,
+    password,
+    protocol,
+    delextra,
+    excludenonadmin,
 ):
     """This module will complete sync 2 engines"""
 
@@ -718,13 +717,13 @@ def sync_eng(
 )
 @pass_config
 def sync_globalobj(
-        config,
-        srcmskengname,
-        tgtmskengname,
-        globalobjsync,
-        username,
-        password,
-        protocol,
+    config,
+    srcmskengname,
+    tgtmskengname,
+    globalobjsync,
+    username,
+    password,
+    protocol,
 ):
     """This module will sync global objects between 2 engines"""
 
@@ -785,9 +784,7 @@ def sync_globalobj(
     help="Include to delete admin users",
 )
 @pass_config
-def cleanup_eng(
-        config, mskengname, username, password, protocol, includeadmin
-):
+def cleanup_eng(config, mskengname, username, password, protocol, includeadmin):
     """This module will complete cleanup engine for fresh start"""
 
     print_banner()
@@ -866,21 +863,19 @@ def cleanup_eng(
     prompt="Enter dxtoolkit path",
     help="dxtoolkit full path",
 )
-@click.option(
-    "--poolname", "-p", default="Default", help="Pool name to assign engine"
-)
+@click.option("--poolname", "-p", default="Default", help="Pool name to assign engine")
 @pass_config
 def run_job(
-        config,
-        jobname,
-        envname,
-        run,
-        mock,
-        username,
-        password,
-        protocol,
-        dxtoolkit_path,
-        poolname,
+    config,
+    jobname,
+    envname,
+    run,
+    mock,
+    username,
+    password,
+    protocol,
+    dxtoolkit_path,
+    poolname,
 ):
     """This module will execute masking job on best candidate engine"""
 
@@ -936,9 +931,10 @@ def run_job(
             job_status = chk_status_arr[1]
             job_engine_name = chk_status_arr[0]
             raise Exception(
-                "ERROR: Job {} on Env {} is already {} on engine {}. Please retry later".format(jobname, envname,
-                                                                                                job_status,
-                                                                                                job_engine_name))
+                "ERROR: Job {} on Env {} is already {} on engine {}. Please retry later".format(
+                    jobname, envname, job_status, job_engine_name
+                )
+            )
 
     except Exception as e:
         print_exception_exit1()
@@ -1174,9 +1170,7 @@ def list_eng_usage(config, username, password, protocol, mock, dxtoolkit_path):
     help="Enter protocol http|https to access Masking Engines",
 )
 @pass_config
-def offline_backup_eng(
-        config, mskengname, username, password, protocol, backup_dir
-):
+def offline_backup_eng(config, mskengname, username, password, protocol, backup_dir):
     """This module will offline backup engine"""
 
     print_banner()
@@ -1232,9 +1226,7 @@ def offline_backup_eng(
     help="Enter protocol http|https to access Masking Engines",
 )
 @pass_config
-def offline_restore_eng(
-        config, mskengname, username, password, protocol, backup_dir
-):
+def offline_restore_eng(config, mskengname, username, password, protocol, backup_dir):
     """This module will offline restore engine from backups"""
 
     print_banner()
@@ -1297,7 +1289,7 @@ def offline_restore_eng(
 )
 @pass_config
 def offline_restore_env(
-        config, mskengname, envname, username, password, protocol, backup_dir
+    config, mskengname, envname, username, password, protocol, backup_dir
 ):
     """This module will offline restore engine from backups"""
 
@@ -1353,14 +1345,12 @@ def offline_restore_env(
 )
 @click.option(
     "--action",
-    type=click.Choice(['list', 'resolve']),
+    type=click.Choice(["list", "resolve"]),
     default="list",
     help="List Connector | Rename conflicting connector names ( All conflicting connector names will be renamed )",
 )
 @pass_config
-def duplicate_connectors(
-        config, mskengname, username, password, protocol, action
-):
+def duplicate_connectors(config, mskengname, username, password, protocol, action):
     """This module will list/resolve duplicate connector names in engine"""
 
     print_banner()
@@ -1388,6 +1378,7 @@ def duplicate_connectors(
         print_exception_exit1()
     sys.exit(0)
 
+
 # duplicate_mskjobs
 @cli.command()
 @click.option(
@@ -1414,14 +1405,12 @@ def duplicate_connectors(
 )
 @click.option(
     "--action",
-    type=click.Choice(['list', 'resolve']),
+    type=click.Choice(["list", "resolve"]),
     default="list",
     help="List Connector | Rename conflicting masking job names ( All conflicting job names will be renamed )",
 )
 @pass_config
-def duplicate_mskjobs(
-        config, mskengname, username, password, protocol, action
-):
+def duplicate_mskjobs(config, mskengname, username, password, protocol, action):
     """This module will list/resolve duplicate masking job names in engine"""
 
     print_banner()
@@ -1448,6 +1437,79 @@ def duplicate_mskjobs(
     except Exception as e:
         print_exception_exit1()
     sys.exit(0)
+
+# compare revisionhash
+@cli.command()
+@click.option(
+    "--srcmskengname",
+    default="",
+    prompt="Enter Source Masking Engine name",
+    help="Source Masking Engine name",
+)
+@click.option(
+    "--tgtmskengname",
+    default="",
+    prompt="Enter Target Masking Engine name",
+    help="Target Masking Engine name",
+)
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking msksidekick username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    help="Masking msksidekick password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@click.option(
+    "--showmatched",
+    default="Y",
+    type=click.Choice(["Y", "N"], case_sensitive=False),
+    help="Show matched revisionhash. Supported values Y|N",
+)
+@pass_config
+def compare_revhash(
+        config,
+        srcmskengname,
+        tgtmskengname,
+        showmatched,
+        username,
+        password,
+        protocol,
+):
+    """This module will compare revhash between 2 engines"""
+
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" srcmskengname = {0}".format(srcmskengname))
+        print(" tgtmskengname = {0}".format(tgtmskengname))
+        print(" showmatched   = {0}".format(showmatched))
+        print(" username      = {0}".format(username))
+        print(" protocol      = {0}".format(protocol))
+
+    try:
+        mskai = masking(
+            config,
+            srcmskengname=srcmskengname,
+            tgtmskengname=tgtmskengname,
+            username=username,
+            password=password,
+            protocol=protocol,
+            showmatched=showmatched,
+        )
+        mskai.compare_obj_revhash()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
 
 if __name__ == "__main__":
     cli()
