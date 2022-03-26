@@ -142,3 +142,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.6] - 2022-02-08
 - Feature : Sync environment only if revisionhash is different
+- Feature : Compare revisionHash of environments and global objects
+
+## [2.0.7] - 2022-03-25
+- Feature : View Job List - to list all jobs with its pool name
+- Feature : Support comments in enginelist file

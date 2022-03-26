@@ -236,7 +236,8 @@ class masking:
 
     def create_dictobj(self, filename):
         with open(filename, "r") as read_obj:
-            reader = DictReader(read_obj)
+            # reader = DictReader(read_obj)
+            reader = DictReader(filter(lambda row: row[0]!='#', read_obj))
             dictobj = list(reader)
             return dictobj
 
@@ -2108,6 +2109,34 @@ class masking:
                 )
             )
             os.remove(self.jobexeclistfile)
+
+    def view_joblist(self):
+        engine_list = self.create_dictobj(self.enginelistfile)
+        job_list = self.create_dictobj(self.joblistfile)
+
+        print(
+            "{0:>1}{1:<35}{2:<35}{3:<35}{4:<20}".format(
+                " ",
+                "Job Name",
+                "Env Name",
+                "EngineName",
+                "Pool Name",
+            )
+        )
+
+        for row in job_list:
+            poolname = self.find_engine_pool(row["ip_address"],engine_list)
+            if poolname == self.poolname:
+                print(
+                    "{0:>1}{1:<35}{2:<35}{3:<35}{4:<20}".format(
+                        " ",
+                        row["jobname"],
+                        row["environmentname"],
+                        row["ip_address"],
+                        poolname
+                    )
+                )
+
 
     def sync_globalobj(self):
         self.sync_syncable_objects("GLOBAL_OBJECT")
@@ -6123,6 +6152,14 @@ class masking:
                         k, v["revisionhash"], tgtenvdict[k]["revisionhash"], matchstatus
                     )
                 )
+
+    def find_engine_pool(self, engineparam, myenginelist):
+        mypoolname = None
+        for engine in myenginelist:
+            if engine["ip_address"] == engineparam:
+                mypoolname = engine["poolname"]
+                break
+        return mypoolname
 
     def compare_obj_revhash(self, srcapikey=None, tgtapikey=None):
         if srcapikey is None:

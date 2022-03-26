@@ -49,7 +49,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.6"
+VERSION = "2.0.7"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -1510,6 +1510,53 @@ def compare_revhash(
         sys.exit(0)
     except Exception as e:
         print_exception_exit1()
+
+
+# view_joblist
+@cli.command()
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking msksidekick username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    default="mskenv",
+    help="Masking msksidekick password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@click.option("--poolname", prompt="Enter Pool Name(Case Sensitive)", default="", help="Pool name of engine")
+@pass_config
+def view_joblist(config, username, password, protocol, poolname):
+    """This module will pull all jobs from all engines"""
+
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" username = {0}".format(username))
+        print(" protocol = {0}".format(protocol))
+        print(" poolname = {0}".format(poolname))
+
+    try:
+        mskai = masking(
+            config,
+            username=username,
+            password=password,
+            protocol=protocol,
+            poolname=poolname,
+        )
+        mskai.view_joblist()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
+
 
 if __name__ == "__main__":
     cli()
