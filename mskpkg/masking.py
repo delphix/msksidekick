@@ -232,6 +232,9 @@ class masking:
             self.protocol = "http"
         if "showmatched" in kwargs.keys():
             self.showmatched = kwargs["showmatched"]
+
+        self.srcapikey = None
+        self.tgtapikey = None
         colorama.init()
 
     def create_dictobj(self, filename):
@@ -654,6 +657,15 @@ class masking:
             if response.status_code == 200:
                 data = json.loads(response.content.decode("utf-8"))
                 # print_debug (data['Authorization'])
+                if hasattr(self, 'srcmskengname'):
+                    if ip_address == self.srcmskengname:
+                        self.srcapikey = data["Authorization"]
+                if hasattr(self, 'tgtmskengname'):
+                    if ip_address == self.tgtmskengname:
+                        self.tgtapikey = data["Authorization"]
+                if hasattr(self, 'mskengname'):
+                    if ip_address == self.mskengname:
+                        self.srcapikey = data["Authorization"]
                 return data["Authorization"]
             else:
                 print_debug("Error generating key {}".format(ip_address))
@@ -662,9 +674,10 @@ class masking:
                 )
                 # sys.exit()
                 return None
-        except:
-            print_debug("Error connecting engine {}".format(ip_address))
-            return None
+        #except:
+        except Exception as e: print(e)
+            #print_debug("Error connecting engine {}".format(ip_address))
+            #return None
 
     def get_api_response(self, ip_address, api_token, apicall, port=80):
         protocol = self.protocol
@@ -677,12 +690,24 @@ class masking:
         }
         api_url = "{0}{1}".format(api_url_base, apicall)
         response = requests.get(api_url, headers=headers, verify=False)
+        outputstring = response.content.decode("utf-8")
+        if "errorMessage" in outputstring:
+            outputstring = json.loads(outputstring)
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+                print_debug("Existing apikey expired. Trying to relogin....")
+                api_token = self.get_auth_key(ip_address, 80)
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": "{0}".format(api_token),
+                }
+                response = requests.get(api_url, headers=headers, verify=False)
+                outputstring = response.content.decode("utf-8")
+
         if response.status_code == 200:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         else:
-            print_debug(response.content.decode("utf-8"))
-            outputstring = response.content.decode("utf-8")
+            print_debug(outputstring)
             if "errorMessage" in outputstring:
                 print(outputstring, file=sys.stderr)
             return None
@@ -698,12 +723,26 @@ class masking:
         }
         api_url = "{0}{1}".format(api_url_base, apicall)
         response = requests.delete(api_url, headers=headers, verify=False)
+
+        outputstring = response.content.decode("utf-8")
+        if "errorMessage" in outputstring:
+            outputstring = json.loads(outputstring)
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+                print_debug("Existing apikey expired. Trying to relogin....")
+                api_token = self.get_auth_key(ip_address, 80)
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": "{0}".format(api_token),
+                }
+                response = requests.delete(api_url, headers=headers, verify=False)
+                outputstring = response.content.decode("utf-8")
+
         if response.status_code == 200:
-            data = response.content.decode("utf-8")
+            data = outputstring
             return data
         else:
-            print_debug(response.content.decode("utf-8"))
-            print(response.content.decode("utf-8"))
+            print_debug(outputstring)
+            print(outputstring)
             return None
 
     def post_api_response(self, ip_address, api_token, apicall, body, port=80):
@@ -717,16 +756,25 @@ class masking:
         }
         api_url = "{0}{1}".format(api_url_base, apicall)
         response = requests.post(api_url, headers=headers, json=body, verify=False)
-        # print(response)
-        # data = json.loads(response.content.decode('utf-8'))
-        # print(data)
-        # print("=====")
+
+        outputstring = response.content.decode("utf-8")
+        if "errorMessage" in outputstring:
+            outputstring = json.loads(outputstring)
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+                print_debug("Existing apikey expired. Trying to relogin....")
+                api_token = self.get_auth_key(ip_address, 80)
+                headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": "{0}".format(api_token),
+                }
+                response = requests.post(api_url, headers=headers, json=body, verify=False)
+                outputstring = response.content.decode("utf-8")
+
         if response.status_code == 200:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         else:
-            print_debug(response.content.decode("utf-8"))
-            outputstring = response.content.decode("utf-8")
+            print_debug(outputstring)
             if "errorMessage" in outputstring:
                 print(outputstring, file=sys.stderr)
             return None
@@ -745,18 +793,31 @@ class masking:
         api_url = "{0}{1}".format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
         response = requests.put(api_url, headers=headers, json=body, verify=False)
-        # print(response)
-        # data = json.loads(response.content.decode('utf-8'))
+
+        outputstring = response.content.decode("utf-8")
+        if "errorMessage" in outputstring:
+            outputstring = json.loads(outputstring)
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+                print_debug("Existing apikey expired. Trying to relogin....")
+                api_token = self.get_auth_key(ip_address, 80)
+                headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": "{0}".format(api_token),
+                }
+                response = requests.put(api_url, headers=headers, json=body, verify=False)
+                outputstring = response.content.decode("utf-8")
+
         if response.status_code == 200:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         elif response.status_code == 409:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         else:
             print_debug(" >>>>> Erroring api_url: {}".format(api_url))
             print_debug(" >>>>> Erroring body   : {}".format(body))
-            print(" {}".format(response.content.decode("utf-8")))
+            print(" {}".format(outputstring))
             return None
 
     def post_api_response1(self, ip_address, api_token, apicall, body, port=80):
@@ -773,18 +834,30 @@ class masking:
         api_url = "{0}{1}".format(api_url_base, apicall)
         print_debug("api_url: {}".format(api_url))
         response = requests.post(api_url, headers=headers, json=body, verify=False)
-        # print(response)
-        # data = json.loads(response.content.decode('utf-8'))
+
+        outputstring = response.content.decode("utf-8")
+        if "errorMessage" in outputstring:
+            outputstring = json.loads(outputstring)
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+                print_debug("Existing apikey expired. Trying to relogin....")
+                api_token = self.get_auth_key(ip_address, 80)
+                headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "Authorization": "{0}".format(api_token),
+                }
+                response = requests.post(api_url, headers=headers, json=body, verify=False)
+                outputstring = response.content.decode("utf-8")
+
         if response.status_code == 200:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         elif response.status_code == 409:
-            data = json.loads(response.content.decode("utf-8"))
+            data = json.loads(outputstring)
             return data
         else:
-            print(" {}".format(response.content.decode("utf-8")))
-            print_debug(response.content.decode("utf-8"))
-            outputstring = response.content.decode("utf-8")
+            print(" {}".format(outputstring))
+            print_debug(outputstring)
             if "errorMessage" in outputstring:
                 print(outputstring, file=sys.stderr)
             return None
@@ -2289,7 +2362,6 @@ class masking:
         tgt_env_name,
         jobname,
     ):
-
         srcapikey = self.get_auth_key(src_engine_name)
         print_debug("srcapikey={}".format(srcapikey))
 
@@ -3038,9 +3110,10 @@ class masking:
         return bkp_main_dir
 
     def bkp_syncable_objects(self, syncable_object_type, bkp_main_dir, srcapikey=None):
-        src_engine_name = self.mskengname
+        src_engine_name = self.srcmskengname
         if srcapikey is None:
             srcapikey = self.get_auth_key(src_engine_name)
+            self.srcapikey = srcapikey
         if srcapikey is not None:
             syncobjapicall = (
                 "syncable-objects?page_number=1&page_size=999&object_type={}".format(
@@ -3084,14 +3157,15 @@ class masking:
 
     def bkp_roles(self, bkp_main_dir, srcapikey=None):
         role_mapping = {}
-        src_engine_name = self.mskengname
+        src_engine_name = self.srcmskengname
         i = None
         if srcapikey is None:
             srcapikey = self.get_auth_key(src_engine_name)
+            self.srcapikey = srcapikey
         if srcapikey is not None:
             roleobjapicall = "roles?page_number=1&page_size=999"
             roleobjapicallresponse = self.get_api_response(
-                src_engine_name, srcapikey, roleobjapicall
+                src_engine_name, self.srcapikey, roleobjapicall
             )
             for role_rec in roleobjapicallresponse["responseList"]:
                 i = 1
@@ -3124,14 +3198,15 @@ class masking:
             )
 
     def bkp_users(self, bkp_main_dir, srcapikey):
-        src_engine_name = self.mskengname
+        src_engine_name = self.srcmskengname
         i = None
         if srcapikey is None:
             srcapikey = self.get_auth_key(src_engine_name)
+            self.srcapikey = srcapikey
         if srcapikey is not None:
             userobjapicall = "users?page_number=1&page_size=999"
             userobjapicallresponse = self.get_api_response(
-                src_engine_name, srcapikey, userobjapicall
+                src_engine_name, self.srcapikey, userobjapicall
             )
             for user_rec in userobjapicallresponse["responseList"]:
                 i = 1
@@ -3156,22 +3231,23 @@ class masking:
             )
 
     def bkp_globalobj(self, bkp_main_dir, srcapikey=None):
-        self.bkp_syncable_objects("GLOBAL_OBJECT", bkp_main_dir, srcapikey)
-        self.bkp_syncable_objects("FILE_FORMAT", bkp_main_dir, srcapikey)
-        self.bkp_syncable_objects("MOUNT_INFORMATION", bkp_main_dir, srcapikey)
+        self.bkp_syncable_objects("GLOBAL_OBJECT", bkp_main_dir, self.srcapikey)
+        self.bkp_syncable_objects("FILE_FORMAT", bkp_main_dir, self.srcapikey)
+        self.bkp_syncable_objects("MOUNT_INFORMATION", bkp_main_dir, self.srcapikey)
 
     def bkp_otf_job_mappings(self, bkp_main_dir, srcapikey=None):
-        src_engine_name = self.mskengname
+        src_engine_name = self.srcmskengname
         otf_job_mapping_list = []
 
         if srcapikey is None:
             srcapikey = self.get_auth_key(src_engine_name)
+            self.srcapikey = srcapikey
         print_debug("srcapikey={}".format(srcapikey))
 
         if srcapikey is not None:
             syncobjapicall = "environments?page_number=1&page_size=999"
             syncobjapicallresponse = self.get_api_response(
-                src_engine_name, srcapikey, syncobjapicall
+                src_engine_name, self.srcapikey, syncobjapicall
             )
 
             for envobj in syncobjapicallresponse["responseList"]:
@@ -3184,7 +3260,7 @@ class masking:
                     )
                 )
                 jobobjapicallresponse = self.get_api_response(
-                    src_engine_name, srcapikey, jobobjapicall
+                    src_engine_name, self.srcapikey, jobobjapicall
                 )
 
                 for jobobj in jobobjapicallresponse["responseList"]:
@@ -3209,16 +3285,16 @@ class masking:
                             srcconnectorId,
                             srcconnectortype,
                             src_engine_name,
-                            srcapikey,
+                            self.srcapikey,
                         )
                         srcconnectorenvId = self.find_env_id_by_conn_id(
                             srcconnectorId,
                             srcconnectortype,
                             src_engine_name,
-                            srcapikey,
+                            self.srcapikey,
                         )
                         srcconnectorEnvname = self.find_env_name(
-                            srcconnectorenvId, src_engine_name, srcapikey
+                            srcconnectorenvId, src_engine_name, self.srcapikey
                         )
 
                         print_debug(
@@ -3226,7 +3302,7 @@ class masking:
                                 srcconnectorId,
                                 srcconnectortype,
                                 src_engine_name,
-                                srcapikey,
+                                self.srcapikey,
                             )
                         )
 
@@ -3257,26 +3333,27 @@ class masking:
 
     def offline_backup_eng(self):
         env_mapping = {}
-        src_engine_name = self.mskengname
+        src_engine_name = self.srcmskengname
         srcapikey = self.get_auth_key(src_engine_name)
-        print_debug("srcapikey={}".format(srcapikey))
-        if srcapikey is not None:
+        self.srcapikey = srcapikey
+        print_debug("srcapikey={}, self.srcapikey={}".format(srcapikey, self.srcapikey))
+        if self.srcapikey is not None:
             bkp_main_dir = self.cr_backup_dirs()
             print(" ")
-            self.bkp_globalobj(bkp_main_dir, srcapikey)
+            self.bkp_globalobj(bkp_main_dir, self.srcapikey)
             print(" ")
-            self.bkp_roles(bkp_main_dir, srcapikey)
+            self.bkp_roles(bkp_main_dir, self.srcapikey)
             print(" ")
-            self.bkp_users(bkp_main_dir, srcapikey)
+            self.bkp_users(bkp_main_dir, self.srcapikey)
             print(" ")
-            self.bkp_otf_job_mappings(bkp_main_dir, srcapikey)
+            self.bkp_otf_job_mappings(bkp_main_dir, self.srcapikey)
             print(" ")
 
             syncobjapicall = (
                 "syncable-objects?page_number=1&page_size=999&object_type=ENVIRONMENT"
             )
             syncobjapicallresponse = self.get_api_response(
-                src_engine_name, srcapikey, syncobjapicall
+                src_engine_name, self.srcapikey, syncobjapicall
             )
 
             for envobj in syncobjapicallresponse["responseList"]:
@@ -3285,16 +3362,16 @@ class masking:
                 envdef.append(envobj)
                 src_env_id = envobj["objectIdentifier"]["id"]
                 src_env_name = self.find_env_name(
-                    src_env_id, src_engine_name, srcapikey
+                    src_env_id, src_engine_name, self.srcapikey
                 )
                 src_env_purpose = self.find_env_purpose(
-                    src_env_id, src_engine_name, srcapikey
+                    src_env_id, src_engine_name, self.srcapikey
                 )
                 src_app_id = self.find_appid_of_envid(
-                    src_env_id, src_engine_name, srcapikey
+                    src_env_id, src_engine_name, self.srcapikey
                 )
                 src_app_name = self.find_app_name(
-                    src_app_id, src_engine_name, srcapikey
+                    src_app_id, src_engine_name, self.srcapikey
                 )
                 print_debug(
                     "Source Env name = {}, Source Env purpose = {}, Source App name = {}, Source Env Id = {}, Source App Id = {}".format(
@@ -3333,7 +3410,7 @@ class masking:
                 else:
                     srcapicall = "export"
                     srcapiresponse = self.post_api_response1(
-                        src_engine_name, srcapikey, srcapicall, envdef, port=80
+                        src_engine_name, self.srcapikey, srcapicall, envdef, port=80
                     )
                     env_bkp_dict = {
                         "src_app_id": src_app_id,
@@ -3360,7 +3437,7 @@ class masking:
             print(" ")
 
         else:
-            print("srcapikey={}".format(srcapikey))
+            print("srcapikey={}".format(self.srcapikey))
             raise Exception(
                 "ERROR: Error connecting source engine {}".format(src_engine_name)
             )
@@ -4362,7 +4439,7 @@ class masking:
                                 elif conntype == "file-connectors":
                                     connidparam = "fileConnectorId"
                                 elif conntype == "mainframe-dataset-connectors":
-                                    connidparam = "mainframe-datasetConnectorId"
+                                    connidparam = "mainframeDatasetConnectorId"
 
                                 connectordict = {
                                     "environmentId": env["environmentId"],
@@ -4408,7 +4485,7 @@ class masking:
                     elif conntype == "file-connectors":
                         connidparam = "fileConnectorId"
                     elif conntype == "mainframe-dataset-connectors":
-                        connidparam = "mainframe-datasetConnectorId"
+                        connidparam = "mainframeDatasetConnectorId"
 
                     newname = conn["connectorName"]
                     if newname != prevname:
@@ -5079,7 +5156,7 @@ class masking:
             for connobj in syncobjapicallresponse["responseList"]:
                 print_debug(connobj)
                 if paramconntype.lower() == "vsam":
-                    conn_id = connobj["{}ConnectorId".format("mainframe-dataset")]
+                    conn_id = connobj["mainframeDatasetConnectorId"]
                 else:
                     conn_id = connobj["{}ConnectorId".format(paramconntype)]
 

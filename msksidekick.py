@@ -1185,7 +1185,8 @@ def offline_backup_eng(config, mskengname, username, password, protocol, backup_
     try:
         mskai = masking(
             config,
-            mskengname=mskengname,
+            # mskengname=mskengname,
+            srcmskengname=mskengname,
             username=username,
             password=password,
             protocol=protocol,
