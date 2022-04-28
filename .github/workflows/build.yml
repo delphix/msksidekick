@@ -166,15 +166,7 @@ jobs:
         python-version: 3.9
     - name: setup python pkg
       run: |
-        pip install --upgrade pip
-        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
-        if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
-        if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install --upgrade setuptools
-    - name: Install pyInstaller
-      run: |
-        pip install pyInstaller
     - name: Get the version
       id: get_version
       run: |
