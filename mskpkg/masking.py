@@ -812,7 +812,11 @@ class masking:
             data = json.loads(outputstring)
             return data
         elif response.status_code == 409:
-            data = json.loads(outputstring)
+            print_debug(type(outputstring))
+            if isinstance(outputstring, str):
+                data = json.loads(outputstring)
+            else:
+                data = outputstring
             return data
         else:
             print_debug(" >>>>> Erroring api_url: {}".format(api_url))
@@ -853,7 +857,11 @@ class masking:
             data = json.loads(outputstring)
             return data
         elif response.status_code == 409:
-            data = json.loads(outputstring)
+            print_debug(type(outputstring))
+            if isinstance(outputstring, str):
+                data = json.loads(outputstring)
+            else:
+                data = outputstring
             return data
         else:
             print(" {}".format(outputstring))
