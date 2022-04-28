@@ -158,7 +158,7 @@ jobs:
   osx:
     runs-on: macos-latest
     steps:
-    - name: checkout msksidekick code
+    - name: checkout msksidekick latest code
       uses: actions/checkout@master
     - name: Set up Python 3.9
       uses: actions/setup-python@v2
