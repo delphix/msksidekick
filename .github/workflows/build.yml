@@ -167,9 +167,14 @@ jobs:
     - name: setup python pkg
       run: |
         pip install --upgrade pip
-        pip install -r requirements.txt
+        if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
+        if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
+        if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install --upgrade setuptools
-        pip install --upgrade pyinstaller
+    - name: Install pyInstaller
+      run: |
+        pip install pyInstaller
         pip install --upgrade requests
         pip install --upgrade termcolor
     - name: Get the version
