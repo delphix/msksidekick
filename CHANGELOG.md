@@ -127,3 +127,24 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 
 ## [2.0.5-rc3] - 2021-02-10
 - Bugfix : Find and resolve duplicate connector names for mainframe
+
+## [2.0.5] - 2021-12-10
+- Bugfix  : When msksidekick called with full path from different location, output directory is not recognized
+- Feature : Find and resolve duplicate connector names
+
+## [2.0.6-rc1] - 2021-02-11
+- Feature : Find and resolve duplicate masking job names
+
+## [2.0.6-rc2] - 2021-17-11
+- Bugfix  : Avoid duplicate submission of job
+- Feature : Display QUEUED job status
+- Feature : Added executionId to pull job status
+
+## [2.0.6] - 2022-02-08
+- Feature : Sync environment only if revisionhash is different
+- Feature : Compare revisionHash of environments and global objects
+
+## [2.0.7] - 2022-05-03
+- Feature : View Job List - to list all jobs with its pool name
+- Feature : Support comments in enginelist file
+- Feature : Bugfix - Unable to pull vsam connector info during restore of backup
