@@ -148,3 +148,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - Feature : View Job List - to list all jobs with its pool name
 - Feature : Support comments in enginelist file
 - Feature : Bugfix - Unable to pull vsam connector info during restore of backup
+
+## [2.0.8] - 2022-07-03
+- Feature : Handles API timeouts
+- BugFix  : List mainframe duplicate connectors

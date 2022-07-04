@@ -49,7 +49,7 @@ from pathlib import Path
 
 # atexit.register(print, "Program exited successfully!")
 
-VERSION = "2.0.7"
+VERSION = "2.0.8"
 # con = sqlite3.connect('msksidekick.db')
 # cur = con.cursor()
 
@@ -1185,7 +1185,6 @@ def offline_backup_eng(config, mskengname, username, password, protocol, backup_
     try:
         mskai = masking(
             config,
-            # mskengname=mskengname,
             srcmskengname=mskengname,
             username=username,
             password=password,
@@ -1242,7 +1241,7 @@ def offline_restore_eng(config, mskengname, username, password, protocol, backup
     try:
         mskai = masking(
             config,
-            mskengname=mskengname,
+            tgtmskengname=mskengname,
             username=username,
             password=password,
             protocol=protocol,
@@ -1307,7 +1306,7 @@ def offline_restore_env(
     try:
         mskai = masking(
             config,
-            mskengname=mskengname,
+            tgtmskengname=mskengname,
             envname=envname,
             username=username,
             password=password,
