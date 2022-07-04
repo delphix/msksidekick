@@ -703,7 +703,7 @@ class masking:
         outputstring = response.content.decode("utf-8")
         if "errorMessage" in outputstring:
             outputstring = json.loads(outputstring)
-            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again." or outputstring['errorMessage'] == "Invalid authorization, check to make sure it has not expired.":
                 print("Existing apikey expired. Trying to relogin....")
                 api_token = self.get_auth_key(ip_address, 80)
                 if api_token is None:
@@ -743,7 +743,7 @@ class masking:
         outputstring = response.content.decode("utf-8")
         if "errorMessage" in outputstring:
             outputstring = json.loads(outputstring)
-            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again." or outputstring['errorMessage'] == "Invalid authorization, check to make sure it has not expired.":
                 print("Existing apikey expired. Trying to relogin....")
                 api_token = self.get_auth_key(ip_address, 80)
                 if api_token is None:
@@ -782,7 +782,7 @@ class masking:
         outputstring = response.content.decode("utf-8")
         if "errorMessage" in outputstring:
             outputstring = json.loads(outputstring)
-            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again." or outputstring['errorMessage'] == "Invalid authorization, check to make sure it has not expired.":
                 print("Existing apikey expired. Trying to relogin....")
                 api_token = self.get_auth_key(ip_address, 80)
                 if api_token is None:
@@ -825,7 +825,7 @@ class masking:
         outputstring = response.content.decode("utf-8")
         if "errorMessage" in outputstring:
             outputstring = json.loads(outputstring)
-            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again." or outputstring['errorMessage'] == "Invalid authorization, check to make sure it has not expired.":
                 print("Existing apikey expired. Trying to relogin....")
                 api_token = self.get_auth_key(ip_address, 80)
                 if api_token is None:
@@ -876,7 +876,7 @@ class masking:
         outputstring = response.content.decode("utf-8")
         if "errorMessage" in outputstring:
             outputstring = json.loads(outputstring)
-            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again.":
+            if outputstring['errorMessage'] == "Provided Authentication has expired. Please log in again." or outputstring['errorMessage'] == "Invalid authorization, check to make sure it has not expired.":
                 print("Existing apikey expired. Trying to relogin....")
                 api_token = self.get_auth_key(ip_address, 80)
                 if api_token is None:
