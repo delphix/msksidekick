@@ -152,3 +152,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 ## [2.0.8] - 2022-07-03
 - Feature : Handles API timeouts
 - BugFix  : List mainframe duplicate connectors
+
+## [2.0.8.1] - 2022-07-31
+- BugFix  : Suppressed extra debug message displayed for OTF Jobs
