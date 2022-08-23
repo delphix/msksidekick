@@ -4094,7 +4094,7 @@ class masking:
             )
 
     def offline_restore_env(self):
-        tgt_engine_name = self.mskengname
+        tgt_engine_name = self.tgtmskengname
         tgtapikey = self.get_auth_key(tgt_engine_name)
 
         print_debug("tgtapikey={}".format(tgtapikey))
