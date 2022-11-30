@@ -3468,12 +3468,12 @@ class masking:
                 otf_env = 0
                 for mapping in otf_job_mapping_dict:
                     if otf_env == 1:
-                        print("otf_env =  1 with mapping {}".format(mapping))
+                        print_debug("otf_env =  1 with mapping {}".format(mapping))
                         break
                     else:
                         if mapping["src_env_name"] == src_env_name:
                             otf_env = 1
-                            print("otf_env =  1 with mapping {}".format(mapping))
+                            print_debug("otf_env =  1 with mapping {}".format(mapping))
                             break
                 otf_env = 0
                 if otf_env == 1:
@@ -4094,7 +4094,7 @@ class masking:
             )
 
     def offline_restore_env(self):
-        tgt_engine_name = self.mskengname
+        tgt_engine_name = self.tgtmskengname
         tgtapikey = self.get_auth_key(tgt_engine_name)
 
         print_debug("tgtapikey={}".format(tgtapikey))
