@@ -2271,6 +2271,14 @@ class masking:
 
 
     def sync_globalobj(self):
+        src_engine_name = self.srcmskengname
+        tgt_engine_name = self.tgtmskengname
+        globalobjsync = True
+        srcapikey = self.validate_msk_eng_connection(src_engine_name)
+        tgtapikey = self.validate_msk_eng_connection(tgt_engine_name)
+        self.srcapikey = srcapikey
+        self.tgtapikey = tgtapikey
+
         self.sync_syncable_objects("GLOBAL_OBJECT")
         self.sync_syncable_objects("FILE_FORMAT")
         self.sync_syncable_objects("MOUNT_INFORMATION")
