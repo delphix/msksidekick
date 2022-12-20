@@ -33,7 +33,6 @@ jobs:
           echo FILEVERSION=$FILEVERSION
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
           echo FILENAME=$FILENAME >> $GITHUB_ENV
-
       - name: rename toolkit
         run: |
           ls -l
