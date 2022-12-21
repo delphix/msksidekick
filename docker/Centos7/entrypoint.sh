@@ -4,7 +4,7 @@ cd /github/workspace
 cd /github/workspace
 python3.8 setup.py install
 #pip3 install wheel
-#pip3 install pyinstaller
+pip3 install pyinstaller
 # for pyinstaller to run
 #pip3 uninstall jeepney -y
 #pip3 install jeepney
