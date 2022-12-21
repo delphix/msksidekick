@@ -37,7 +37,7 @@ jobs:
         run: |
           ls -l dist/
           echo FILENAME=${{ env.FILENAME }}
-          tar -C dist czvf ${{ env.FILENAME }} msksidekick
+          tar -C dist -czvf ${{ env.FILENAME }} msksidekick
           ls -l
       - name: Upload centos 7
         uses: actions/upload-artifact@v1
@@ -83,7 +83,7 @@ jobs:
         run: |
           ls -l dist/
           echo FILENAME=${{ env.FILENAME }}
-          tar -C dist czvf ${{ env.FILENAME }} msksidekick
+          tar -C dist -czvf ${{ env.FILENAME }} msksidekick
           ls -l
       - name: Upload Ubuntu
         uses: actions/upload-artifact@v1
@@ -204,7 +204,7 @@ jobs:
         ls -l
         pwd
         ls -l dist/
-        tar -C dist czvf ${{ env.FILENAME }} msksidekick
+        tar -C dist -czvf ${{ env.FILENAME }} msksidekick
     - name: Upload OSX
       uses: actions/upload-artifact@v1
       with:
