@@ -34,7 +34,6 @@ jobs:
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
           echo FILENAME=$FILENAME >> $GITHUB_ENV
           cd /github/workspace
-          pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
       - name: rename toolkit
         run: |
           ls -l
