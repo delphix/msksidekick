@@ -79,6 +79,7 @@ jobs:
           echo FILENAME=$FILENAME >> $GITHUB_ENV
           echo `pwd`
           echo `ls -l`
+          pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
       - name: rename toolkit
         run: |
           ls -l dist/
