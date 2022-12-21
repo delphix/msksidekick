@@ -25,8 +25,7 @@ RUN cd /Python-3.8.12 \
     && make altinstall
 RUN /usr/local/bin/python3.8 -m pip install --upgrade pip
 
-RUN pip3.8 install urllib3==1.26 \
-    && pip3.8 install charset-normalizer==2
+RUN pip3.8 install urllib3==1.26
 
 RUN pip3.8 install pyinstaller
 
