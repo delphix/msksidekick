@@ -1,7 +1,6 @@
 #!/bin/bash
 
 cd /github/workspace
-cd /github/workspace
 python3.8 setup.py install
 #pip3 install wheel
 pip3 install pyinstaller
