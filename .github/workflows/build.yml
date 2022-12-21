@@ -82,8 +82,6 @@ jobs:
           FILENAME="msksidekick-${SOURCE_TAG}-ubuntu.tar.gz"
           echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
           echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-          pip uninstall jeepney -y
-          pip install jeepney
           pyinstaller --onefile --clean msksidekick.py
       - name: rename toolkit
         run: |
