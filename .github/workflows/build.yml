@@ -35,12 +35,8 @@ jobs:
           echo FILENAME=$FILENAME >> $GITHUB_ENV
           echo `pwd`
           echo `ls -l`
-          echo `pwd`
-          echo `ls -l *`
       - name: rename toolkit
         run: |
-          ls -l
-          pwd
           ls -l dist/
           mkdir msksidekick
           cp dist/msksidekick msksidekick/msksidekick
