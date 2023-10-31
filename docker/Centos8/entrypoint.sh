@@ -8,6 +8,6 @@ pip3 install pyinstaller
 # for pyinstaller to run
 pip3 uninstall jeepney -y
 pip3 install jeepney
-pyinstaller --onefile --clean profiler.py
+pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 cd /github/workspace/dist
 # tail -f /dev/null
