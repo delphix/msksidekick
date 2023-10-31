@@ -160,4 +160,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - BugFix  : Restore Individual environment fails with object has no attribute 'mskengname'
 
 ## [2.0.8.3] - 2022-12-21
-- BugFix  : Not able to sync global objects" Github Issue #23
+- BugFix  : Not able to sync global objects Github Issue #23
+
+## [2.0.8.4] - 2023-10-31
+- BugFix  : obfuscate passwords when exporting masking users Github Issue #27
+- Feature : Add compiled binary for Amazon 2023 and CentOS8 platform
