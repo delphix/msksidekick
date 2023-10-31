@@ -104,6 +104,19 @@ class masking:
             "VIN_NO",
             "WEB",
             "ZIP",
+            "AGE",
+            "BANK_ACCOUNT_NO",
+            "COUNTRY",
+            "FULL_NAME",
+            "HIPAA_DATE",
+            "IBAN",
+            "PASSWORD",
+            "PAYMENT_AMOUNT",
+            "UNION_MEMBERSHIP_NO",
+            "USER_ID",
+            "US_PASSPORT",
+            "USPS_STATE_CODE",
+            "US_STATE",
         ]
         self.systemalgorithmlist = [
             "AccNoLookup",
@@ -3305,7 +3318,7 @@ class masking:
                 userId = user_rec["userId"]
                 userName = user_rec["userName"]
                 userNameNoSpace = userName.replace(" ", "_")
-                user_rec["password"] = "Delphix-123"
+                user_rec["password"] = "xxxxxxxxx"
                 user_bkp_dict = {
                     "userId": userId,
                     "userName": userName,
@@ -3998,6 +4011,7 @@ class masking:
                     userId = userobj_bkp_dict["userId"]
                     userName = userobj_bkp_dict["userName"]
                     srcapiresponse = userobj_bkp_dict["srcapiresponse"]
+                    srcapiresponse["password"] = "Delphix-123"
                     print_debug(" Is Admin:{}".format(srcapiresponse["isAdmin"]))
                     if not srcapiresponse["isAdmin"]:
                         print_debug(
@@ -5556,7 +5570,8 @@ class masking:
             src_role_id = roleobj["roleId"]
             src_role_name = roleobj["roleName"]
             print_debug("Role = {},{}".format(src_role_id, src_role_name))
-            if src_role_name != "All Privileges":
+            builtin_roles = ["All Privileges","DBA","Environment Owner","IT Security Analyst","Operator","SME"]
+            if src_role_name not in builtin_roles:
                 delapicall = "roles/{}".format(src_role_id)
                 delapiresponse = self.del_api_response(
                     src_engine_name, self.srcapikey, delapicall
