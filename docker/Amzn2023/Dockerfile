@@ -11,7 +11,7 @@ LABEL maintainer="at.oracledba@gmail.com"
 
 # Update the system and install necessary packages
 RUN yum -y update && \
-    yum -y install python3 python3-pip && \
+    yum -y install python3.9 python3-pip && \
     yum clean all
 
 # Symlink python3 and pip3 to default python and pip
