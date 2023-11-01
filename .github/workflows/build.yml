@@ -117,16 +117,9 @@ jobs:
           echo FILENAME=$FILENAME >> $GITHUB_ENV
           echo `pwd`
           echo `ls -l`
-          echo `USER=$USER`
-          echo `ls -ld /home`
-          echo `ls -ld /home/runner`                    
-          echo `ls -ld /home/runner/work`
+          echo `id -a`
+          echo `USER=\$USER $USER`
           mkdir -p /home/runner/work/msksidekick/msksidekick/build
-          chmod -R 777 /home/runner/work/msksidekick
-          echo `ls -ld /home/runner/work/msksidekick`
-          echo `ls -ld /home/runner/work/msksidekick/msksidekick`
-          echo `ls -ld /home/runner/work/msksidekick/msksidekick/build`
-          echo `ls -ld /home/runner/work/msksidekick/msksidekick/build/msksidekick`
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
       - name: rename toolkit
