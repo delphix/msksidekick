@@ -54,6 +54,10 @@ jobs:
       - name: Set up a Python container
         uses: docker://ajayjt/pycentos8:latest
 
+      - name: Install pyInstaller
+        run: |
+          pip install pyInstaller
+
       - name: Get the version
         id: get_version
         run: |
@@ -73,6 +77,7 @@ jobs:
           echo `pwd`
           echo `ls -l`
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+          
       - name: rename toolkit
         run: |
           ls -l dist/
