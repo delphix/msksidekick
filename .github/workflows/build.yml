@@ -119,7 +119,7 @@ jobs:
           echo `ls -l`
           echo `id -a`
           mkdir -p /home/runner/work/msksidekick/msksidekick/build
-          sudo chown -R :0 /home/runner/work/msksidekick/msksidekick
+          export TMPDIR=/home/runner/work/msksidekick/msksidekick/build
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
       - name: rename toolkit
