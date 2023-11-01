@@ -118,8 +118,8 @@ jobs:
           echo `pwd`
           echo `ls -l`
           echo `id -a`
-          echo `USER=\$USER $USER`
           mkdir -p /home/runner/work/msksidekick/msksidekick/build
+          sudo chown -R :0 /home/runner/work/msksidekick/msksidekick
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
       - name: rename toolkit
