@@ -118,7 +118,7 @@ jobs:
           echo `pwd`
           echo `ls -l`
           echo `id -a`
-          export TMPDIR=/var/tmp
+          export TMPDIR=/var/tmp >> $GITHUB_ENV
           echo `env`
           pyinstaller --onefile --clean --hidden-import pkg_resources ./msksidekick.py
 
