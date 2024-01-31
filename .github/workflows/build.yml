@@ -51,10 +51,10 @@ jobs:
       image: registry.access.redhat.com/ubi8/ubi
 
     steps:
-    - name: Install Python 3.11
+    - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
       run: |
-        dnf install -y python3
-        alternatives --set python /usr/bin/python3
+        dnf install -y python38
+        alternatives --set python /usr/bin/python3.8
         python --version
 
     - name: Install dependencies
