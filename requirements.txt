@@ -8,7 +8,7 @@ macholib==1.14
 psutil==5.8.0
 pyinstaller==4.2
 pyinstaller-hooks-contrib==2020.11
-requests==2.25.1
+requests==2.31.0
 statistics==1.0.3.5
 termcolor==1.1.0
 colorama~=0.4.4
