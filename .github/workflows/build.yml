@@ -53,14 +53,13 @@ jobs:
     steps:
     - name: Install Python 3.11
       run: |
-        yum install -y epel-release
-        yum install -y python3.11
-        alternatives --set python /usr/bin/python3.11
+        dnf install -y python3
+        alternatives --set python /usr/bin/python3
         python --version
 
     - name: Install dependencies
       run: |
-        yum install -y wget
+        dnf install -y wget
         wget https://bootstrap.pypa.io/get-pip.py
         python get-pip.py
         pip install pyinstaller
