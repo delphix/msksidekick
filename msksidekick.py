@@ -1197,6 +1197,70 @@ def offline_backup_eng(config, mskengname, username, password, protocol, backup_
         print_exception_exit1()
     sys.exit(0)
 
+# offline_backup_env
+@cli.command()
+@click.option(
+    "--mskengname",
+    default="",
+    prompt="Enter Masking Engine name",
+    help="Masking Engine name",
+)
+@click.option(
+    "--backup_dir", default="", prompt="Enter Backup Path", help="Backup Path"
+)
+@click.option(
+    "--envname",
+    "-e",
+    default="mskenv",
+    prompt="Enter name of Environment to be backed up",
+    help="Name of Environment to be backed up",
+)
+@click.option(
+    "--username",
+    "-u",
+    prompt="Enter Masking username",
+    help="Masking msksidekick username to connect masking engines",
+)
+@click.password_option(
+    "--password",
+    "-p",
+    help="Masking msksidekick password to connect masking engines",
+)
+@click.option(
+    "--protocol",
+    default="https",
+    help="Enter protocol http|https to access Masking Engines",
+)
+@pass_config
+def offline_backup_env(config, mskengname, envname, username, password, protocol, backup_dir):
+    """This module will offline backup environment"""
+
+    print_banner()
+    globals.initialize(config.debug, config.verbose, script_dir)
+    if config.verbose or config.debug:
+        click.echo("Verbose mode enabled")
+        print(" mskengname    = {0}".format(mskengname))
+        print(" envname       = {0}".format(envname))
+        print(" username      = {0}".format(username))
+        print(" protocol      = {0}".format(protocol))
+        print(" backup_dir    = {0}".format(backup_dir))
+
+    try:
+        mskai = masking(
+            config,
+            srcmskengname=mskengname,
+            envname=envname,
+            username=username,
+            password=password,
+            protocol=protocol,
+            backup_dir=backup_dir,
+        )
+        mskai.offline_backup_env()
+        sys.exit(0)
+    except Exception as e:
+        print_exception_exit1()
+    sys.exit(0)
+
 
 # offline_restore_eng
 @cli.command()

@@ -3436,7 +3436,7 @@ class masking:
                 "ERROR: Error connecting source engine {}".format(src_engine_name)
             )
 
-    def bkp_environments(self, bkp_main_dir, srcapikey=None):
+    def bkp_environments(self, bkp_main_dir, srcapikey=None, src_env_name=None):
         env_mapping = {}
         src_engine_name = self.srcmskengname
         if srcapikey is None:
@@ -3445,9 +3445,15 @@ class masking:
             print_debug("srcapikey={}".format(srcapikey))
 
         if srcapikey is not None:
-            syncobjapicall = (
-                "syncable-objects?page_number=1&page_size=999&object_type=ENVIRONMENT"
-            )
+            if src_env_name is not None:
+                src_env_id = self.find_env_id(src_env_name, src_engine_name, srcapikey)
+                syncobjapicall = "syncable-objects/environments/{}?page_number=1&page_size=999".format(
+                    src_env_id
+                )
+            else:
+                syncobjapicall = (
+                    "syncable-objects?page_number=1&page_size=999&object_type=ENVIRONMENT"
+                )
             syncobjapicallresponse = self.get_api_response(
                 src_engine_name, self.srcapikey, syncobjapicall
             )
@@ -3550,6 +3556,36 @@ class masking:
             print(" ")
 
             print("Created backup of masking engine at {}".format(bkp_main_dir))
+            print(" ")
+
+        else:
+            print("srcapikey={}".format(self.srcapikey))
+            raise Exception(
+                "ERROR: Error connecting source engine {}".format(src_engine_name)
+            )
+
+    def offline_backup_env(self):
+        env_mapping = {}
+        src_engine_name = self.srcmskengname
+        src_env_name = self.envname
+        srcapikey = self.get_auth_key(src_engine_name)
+        self.srcapikey = srcapikey
+        print_debug("srcapikey={}, self.srcapikey={}".format(srcapikey, self.srcapikey))
+        if self.srcapikey is not None:
+            bkp_main_dir = self.cr_backup_dirs()
+            print(" ")
+            self.bkp_globalobj(bkp_main_dir, self.srcapikey)
+            print(" ")
+            self.bkp_otf_job_mappings(bkp_main_dir, self.srcapikey)
+            print(" ")
+            env_mapping = self.bkp_environments(bkp_main_dir, self.srcapikey, src_env_name)
+            env_mapping_file = "{}/mappings/backup_env_mapping.dat".format(bkp_main_dir)
+            with open(env_mapping_file, "wb") as fh:
+                pickle.dump(env_mapping, fh)
+            print("Created mapping file for environment")
+            print(" ")
+
+            print("Created backup of environment at {}".format(bkp_main_dir))
             print(" ")
 
         else:
