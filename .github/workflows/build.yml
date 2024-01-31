@@ -74,6 +74,8 @@ jobs:
         else
           exit 1
         fi
+        pwd
+        ls -l *
         VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
         FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-linux8.tar.gz"
         echo SOURCE_TAG=$SOURCE_TAG
