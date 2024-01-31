@@ -51,6 +51,9 @@ jobs:
       image: registry.access.redhat.com/ubi8/ubi
 
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+          -
     - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
       run: |
         dnf install -y python38
