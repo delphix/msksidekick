@@ -48,7 +48,7 @@ jobs:
   centos8:
     runs-on: ubuntu-latest
     container:
-      image: centos:8
+      image: registry.access.redhat.com/ubi8/ubi
 
     steps:
     - name: Install Python 3.11
