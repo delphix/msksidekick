@@ -64,6 +64,9 @@ jobs:
         python get-pip.py
         pip install pyinstaller
 
+    - name: List contents of the working directory
+      run: ls -la
+
     - name: Get the version
       id: get_version
       run: |
