@@ -173,6 +173,21 @@ jobs:
        - name: checkout msksidekick code
          uses: actions/checkout@master
 
+       - name: List contents of the working directory
+         run: ls -la /
+
+       - name: List contents of the working directory
+         run: ls -la /home/runner
+
+       - name: List contents of the working directory
+         run: ls -la /home/runner/work
+
+       - name: List contents of the working directory
+         run: ls -la /home/runner/work/msksidekick
+
+       - name: List contents of the working directory
+         run: ls -la /home/runner/work/msksidekick/msksidekick
+
        - name: Get the version
          id: get_version
          run: |
@@ -190,7 +205,7 @@ jobs:
            echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
            echo FILENAME=$FILENAME >> $GITHUB_ENV
            echo `pwd`
-           echo `ls -l`
+           echo `ls -l /home/runner/work/msksidekick/msksidekick`
            . /venv/bin/activate
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
