@@ -165,19 +165,14 @@ jobs:
    ubuntu-latest:
      runs-on: ubuntu-latest
      steps:
+       - name: Set up a Python container
+         uses: docker://ajayjt/pyubuntu18:latest
+         with:
+           args: /bin/bash
+
        - name: checkout msksidekick code
          uses: actions/checkout@master
-       - name: Install dependencies
-         run: |
-           pip install --upgrade pip
-           if [ -f requirements.txt ]; then sed -i '/pyinstaller/d' requirements.txt; fi
-           if [ -f requirements.txt ]; then sed -i '/setuptools/d' requirements.txt; fi
-           if [ -f requirements.txt ]; then echo "setuptools" >> requirements.txt; fi
-           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-           pip install --upgrade setuptools
-       - name: Install pyInstaller
-         run: |
-           pip install pyInstaller
+
        - name: Get the version
          id: get_version
          run: |
@@ -196,13 +191,16 @@ jobs:
            echo FILENAME=$FILENAME >> $GITHUB_ENV
            echo `pwd`
            echo `ls -l`
+           . /venv/bin/activate
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+
        - name: rename toolkit
          run: |
            ls -l dist/
            echo FILENAME=${{ env.FILENAME }}
            tar -C dist -czvf ${{ env.FILENAME }} msksidekick
            ls -l
+
        - name: Upload Ubuntu
          uses: actions/upload-artifact@v1
          with:
