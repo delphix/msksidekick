@@ -168,7 +168,7 @@ jobs:
        - name: Set up a Python container
          uses: docker://ajayjt/pyubuntu18:latest
          with:
-           args: /bin/bash
+           args: bash
 
        - name: checkout msksidekick code
          uses: actions/checkout@master
