@@ -208,6 +208,7 @@ jobs:
            echo `ls -l /home/runner/work/msksidekick/msksidekick`
            which python
            python -V
+           python -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
