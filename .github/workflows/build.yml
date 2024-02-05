@@ -206,7 +206,8 @@ jobs:
            echo FILENAME=$FILENAME >> $GITHUB_ENV
            echo `pwd`
            echo `ls -l /home/runner/work/msksidekick/msksidekick`
-           . /venv/bin/activate
+           which python
+           python -V
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
