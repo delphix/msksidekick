@@ -184,10 +184,11 @@ jobs:
            echo FILENAME=$FILENAME
            echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
            echo FILENAME=$FILENAME >> $GITHUB_ENV
-           python -m pip install --upgrade cx_Freeze
-           cxfreeze -c ./msksidekick.py --target-dir dist
-           #python -m pip install pyinstaller
-           #pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+           #python -m pip install --upgrade cx_Freeze
+           #cxfreeze -c ./msksidekick.py --target-dir dist
+           sudo apt-get update -y
+           python -m pip install pyinstaller
+           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
          run: |
