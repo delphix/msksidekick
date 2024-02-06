@@ -1,10 +1,3 @@
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 VERSION" >&2
-  exit 1
-fi
-
-release=$1
-
 unzip linux7build.zip
 rm linux7build.zip
 
