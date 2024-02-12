@@ -194,7 +194,8 @@ jobs:
            pwd
            ls -l *
            python -V
-           find / -name "pyinstaller"
+           id -a
+           find /usr -name "pyinstaller"
            pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
