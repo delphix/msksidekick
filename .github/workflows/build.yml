@@ -182,7 +182,7 @@ jobs:
         run: |
           apt update && apt install gnupg2 -y
           #apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4B63CF8FDE49746E98FA01DDAD19BAB3CBF125EA
-          apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv FDC247B7
+          #apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv FDC247B7
           #gpg2 --keyserver hkp://keys.gnupg.net --recv-keys 38DBBDC86092693E
           apt-get install -y gpg wget
           wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
