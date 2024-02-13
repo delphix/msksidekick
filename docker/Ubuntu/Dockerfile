@@ -19,21 +19,30 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Download and install Python 3.9
+#RUN wget https://www.python.org/ftp/python/3.9.5/Python-3.9.5.tgz \
+#    && tar -xf Python-3.9.5.tgz \
+#    && cd Python-3.9.5 \
+#    && ./configure --enable-optimizations \
+#    && make -j$(nproc) \
+#    && make altinstall \
+#    && cd .. \
+#    && rm -rf Python-3.9.5*
+
 RUN wget https://www.python.org/ftp/python/3.9.5/Python-3.9.5.tgz \
     && tar -xf Python-3.9.5.tgz \
     && cd Python-3.9.5 \
     && ./configure --enable-optimizations \
     && make -j$(nproc) \
     && make altinstall \
-    && cd .. \
-    && rm -rf Python-3.9.5*
+    && cd ..
 
 # Set environment variables
 ENV PATH="/usr/local/bin:$PATH"
 
 # Install PyInstaller
-RUN pip3 install pyinstaller
+RUN python3.9 -m pip install pyinstaller
+RUN python3.9 -m pip install staticx
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /
 

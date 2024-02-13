@@ -193,10 +193,10 @@ jobs:
            ls -l /usr/local/bin
            pwd
            ls -l *
-           python -V
+           python3.9 -V
            id -a
-           find /usr -name "pyinstaller"
-           pip install pyinstaller
+           export PATH="/usr/local/bin:$PATH"
+           python3.9 -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
