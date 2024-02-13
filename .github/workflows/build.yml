@@ -190,12 +190,18 @@ jobs:
            #sudo apt install libc6-dev -y
            #sudo apt-get install -y python3-pip
            #python -m pip install pyinstaller
+           pwd 
+           ls -l /
+           cd Python-3.9.5
+           ./configure --enable-optimizations
+           make -j$(nproc)
+           make altinstall
+           export PATH="/usr/local/bin:$PATH"
            ls -l /usr/local/bin
            pwd
            ls -l *
            python3.9 -V
            id -a
-           export PATH="/usr/local/bin:$PATH"
            python3.9 -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
