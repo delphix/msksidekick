@@ -161,8 +161,7 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - name: Set up a Python container
-         #uses: docker://ajayjt/pyubuntu18:latest
-         uses: docker://595460399/ubuntu22.04_python3.10.4:v1
+         uses: docker://ajayjt/pyubuntu16:latest
          with:
            args: bash
 
@@ -191,6 +190,7 @@ jobs:
            #sudo apt install libc6-dev -y
            #sudo apt-get install -y python3-pip
            #python -m pip install pyinstaller
+           update-alternatives --set python /usr/bin/python3.8
            python -V
            python -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
