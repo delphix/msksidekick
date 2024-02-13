@@ -158,12 +158,12 @@ jobs:
 
 
    ubuntu-latest:
-     runs-on: ubuntu-latest
+     runs-on: ubuntu-18.04
      steps:
        - name: setup python
          uses: actions/setup-python@v3
          with:
-           python-version: "3.9.5"
+           python-version: "3.9.7"
            cache: "pip"
          env:
            AGENT_TOOLSDIRECTORY: /opt/hostedtoolache
