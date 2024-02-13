@@ -266,6 +266,7 @@ jobs:
           echo FILENAME=$FILENAME >> $GITHUB_ENV
           update-alternatives --set python /usr/bin/python${PYTHON_VERSION}
           python -V
+          python3 -V
           python -m pip install pyinstaller
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
