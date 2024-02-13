@@ -5,7 +5,7 @@ on:
     branches: [ develop ]
 
 env:
-  PYTHON_VERSION: 3.7
+  PYTHON_VERSION: 3.9
 
 jobs:
 
@@ -259,13 +259,12 @@ jobs:
           echo SOURCE_TAG=$SOURCE_TAG
           VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
           #FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-ubuntu18.tar.gz"
-          FILENAME="msksidekick-${VERSION_TAG}-ubuntu18.tar.gz"
+          FILENAME="msksidekick-2.0.8.5-ubuntu18.tar.gz"
           echo SOURCE_TAG=$SOURCE_TAG
           echo FILENAME=$FILENAME
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
           echo FILENAME=$FILENAME >> $GITHUB_ENV
-          ls -ltr /usr/bin/pyth*
-          #update-alternatives --set python /usr/bin/python3.8
+          update-alternatives --set python /usr/bin/python${PYTHON_VERSION}
           python -V
           python -m pip install pyinstaller
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
