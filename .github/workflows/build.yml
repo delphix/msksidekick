@@ -161,7 +161,8 @@ jobs:
      runs-on: ubuntu-latest
      steps:
        - name: Set up a Python container
-         uses: docker://ajayjt/pyubuntu18:latest
+         #uses: docker://ajayjt/pyubuntu18:latest
+         uses: docker://595460399/ubuntu22.04_python3.10.4:v1
          with:
            args: bash
 
@@ -190,19 +191,8 @@ jobs:
            #sudo apt install libc6-dev -y
            #sudo apt-get install -y python3-pip
            #python -m pip install pyinstaller
-           pwd 
-           ls -l /
-           cd Python-3.9.5
-           ./configure --enable-optimizations
-           make -j$(nproc)
-           make altinstall
-           export PATH="/usr/local/bin:$PATH"
-           ls -l /usr/local/bin
-           pwd
-           ls -l *
-           python3.9 -V
-           id -a
-           python3.9 -m pip install pyinstaller
+           python -V
+           python -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
