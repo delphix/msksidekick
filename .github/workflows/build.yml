@@ -160,10 +160,18 @@ jobs:
    ubuntu-latest:
      runs-on: ubuntu-latest
      steps:
-       - name: Set up a Python container
-         uses: docker://ajayjt/pyubuntu16:latest
+       - name: setup python
+         uses: actions/setup-python@v3
          with:
-           args: bash
+           python-version: "3.9.5"
+           cache: "pip"
+         env:
+           AGENT_TOOLSDIRECTORY: /opt/hostedtoolache
+
+#       - name: Set up a Python container
+#         uses: docker://ajayjt/pyubuntu16:latest
+#         with:
+#           args: bash
 
        - name: checkout msksidekick code
          uses: actions/checkout@master
