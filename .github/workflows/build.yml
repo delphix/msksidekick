@@ -250,14 +250,13 @@ jobs:
           ls -ltr
           if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
             SOURCE_TAG=${GITHUB_REF#refs/tags/}
-            echo "Loop 1"
           elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
             SOURCE_TAG=${GITHUB_REF#refs/heads/}
-            echo "Loop 2"
           else
-            echo "Loop else"
             exit 1
           fi
+          id -a
+          echo SOURCE_TAG=$SOURCE_TAG
           VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
           FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-ubuntu18.tar.gz"
           echo SOURCE_TAG=$SOURCE_TAG
