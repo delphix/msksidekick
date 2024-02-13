@@ -184,9 +184,10 @@ jobs:
            echo FILENAME=$FILENAME
            echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
            echo FILENAME=$FILENAME >> $GITHUB_ENV
-           update-alternatives --set python /usr/bin/python3.8
-           #python3.8 -V
-           python3.8 -m pip install pyinstaller
+           ls -ltr /usr/bin/pytho*
+           #update-alternatives --set python /usr/bin/python3.8
+           python -V
+           python -m pip install pyinstaller
            pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
        - name: rename toolkit
