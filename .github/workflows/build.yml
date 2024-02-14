@@ -9,155 +9,98 @@ env:
 
 jobs:
 
-#   centos7:
-#       runs-on: ubuntu-latest
-#       steps:
-#         - name: checkout msksidekick code
-#           uses: actions/checkout@master
-#
-#         - name: Set up a Python container
-#           uses: docker://ajayjt/pycentos7:latest
-#
-#         - name: Get the version
-#           id: get_version
-#           run: |
-#             if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
-#               SOURCE_TAG=${GITHUB_REF#refs/tags/}
-#             elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
-#               SOURCE_TAG=${GITHUB_REF#refs/heads/}
-#             else
-#               exit 1
-#             fi
-#             VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-#             FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-linux7.tar.gz"
-#             echo SOURCE_TAG=$SOURCE_TAG
-#             echo FILENAME=$FILENAME
-#             echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
-#             echo FILENAME=$FILENAME >> $GITHUB_ENV
-#
-#         - name: rename toolkit
-#           run: |
-#             echo FILENAME=${{ env.FILENAME }}
-#             tar -C dist -czvf ${{ env.FILENAME }} msksidekick
-#
-#         - name: Upload centos 7
-#           uses: actions/upload-artifact@v1
-#           with:
-#             name: linux7build
-#             path: ${{ env.FILENAME }}
-#
-##   amznlinux2023:
-##      runs-on: ubuntu-latest
-##      container:
-##        image: amazonlinux:2023
-##
-##      steps:
-##      - name: Checkout code
-##        uses: actions/checkout@v2
-##
-##      - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
-##        run: |
-##          dnf install -y python38
-##          alternatives --set python /usr/bin/python3.8
-##          python --version
-##
-##      - name: Install dependencies
-##        run: |
-##          dnf install -y wget
-##          wget https://bootstrap.pypa.io/get-pip.py
-##          python get-pip.py
-##          pip install pyinstaller
-##
-##      - name: Install binutils
-##        run: dnf install -y binutils
-##
-##      - name: List contents of the working directory
-##        run: ls -la
-##
-##      - name: Get the version
-##        id: get_version
-##        run: |
-##          if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
-##            SOURCE_TAG=${GITHUB_REF#refs/tags/}
-##          elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
-##            SOURCE_TAG=${GITHUB_REF#refs/heads/}
-##          else
-##            exit 1
-##          fi
-##
-##          VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-##          FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-amznlinux2023.tar.gz"
-##          echo SOURCE_TAG=$SOURCE_TAG
-##          echo FILENAME=$FILENAME
-##          echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
-##          echo FILENAME=$FILENAME >> $GITHUB_ENV
-##          pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
-##
-##      - name: rename compiled utility
-##        run: |
-##          echo FILENAME=${{ env.FILENAME }}
-##          tar -C dist -czvf ${{ env.FILENAME }} msksidekick
-##
-##      - name: Upload artifact
-##        uses: actions/upload-artifact@v2
-##        with:
-##          name: amznlinux2023build
-##          path: ${{ env.FILENAME }}
-#
-#   redhat8:
-#      runs-on: ubuntu-latest
-#      container:
-#        image: registry.access.redhat.com/ubi8/ubi
-#
-#      steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-#
-#      - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
-#        run: |
-#          dnf install -y python38
-#          alternatives --set python /usr/bin/python3.8
-#          python --version
-#
-#      - name: Install dependencies
-#        run: |
-#          dnf install -y wget
-#          wget https://bootstrap.pypa.io/get-pip.py
-#          python get-pip.py
-#          pip install pyinstaller
-#
-#      - name: Install binutils
-#        run: dnf install -y binutils
-#
-#      - name: Get the version
-#        id: get_version
-#        run: |
-#          if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
-#            SOURCE_TAG=${GITHUB_REF#refs/tags/}
-#          elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
-#            SOURCE_TAG=${GITHUB_REF#refs/heads/}
-#          else
-#            exit 1
-#          fi
-#
-#          VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-#          FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-linux8.tar.gz"
-#          echo SOURCE_TAG=$SOURCE_TAG
-#          echo FILENAME=$FILENAME
-#          echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
-#          echo FILENAME=$FILENAME >> $GITHUB_ENV
-#          pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
-#
-#      - name: rename compiled utility
-#        run: |
-#          echo FILENAME=${{ env.FILENAME }}
-#          tar -C dist -czvf ${{ env.FILENAME }} msksidekick
-#
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: linux8build
-#          path: ${{ env.FILENAME }}
+   centos7:
+       runs-on: ubuntu-latest
+       steps:
+         - name: checkout msksidekick code
+           uses: actions/checkout@master
+
+         - name: Set up a Python container
+           uses: docker://ajayjt/pycentos7:latest
+
+         - name: Get the version
+           id: get_version
+           run: |
+             if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
+               SOURCE_TAG=${GITHUB_REF#refs/tags/}
+             elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
+               SOURCE_TAG=${GITHUB_REF#refs/heads/}
+             else
+               exit 1
+             fi
+             VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
+             FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-linux7.tar.gz"
+             echo SOURCE_TAG=$SOURCE_TAG
+             echo FILENAME=$FILENAME
+             echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
+             echo FILENAME=$FILENAME >> $GITHUB_ENV
+
+         - name: rename toolkit
+           run: |
+             echo FILENAME=${{ env.FILENAME }}
+             tar -C dist -czvf ${{ env.FILENAME }} msksidekick
+
+         - name: Upload centos 7
+           uses: actions/upload-artifact@v1
+           with:
+             name: linux7build
+             path: ${{ env.FILENAME }}
+
+
+   redhat8:
+      runs-on: ubuntu-latest
+      container:
+        image: registry.access.redhat.com/ubi8/ubi
+
+      steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
+        run: |
+          dnf install -y python38
+          alternatives --set python /usr/bin/python3.8
+          python --version
+
+      - name: Install dependencies
+        run: |
+          dnf install -y wget
+          wget https://bootstrap.pypa.io/get-pip.py
+          python get-pip.py
+          pip install pyinstaller
+
+      - name: Install binutils
+        run: dnf install -y binutils
+
+      - name: Get the version
+        id: get_version
+        run: |
+          if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
+            SOURCE_TAG=${GITHUB_REF#refs/tags/}
+          elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
+            SOURCE_TAG=${GITHUB_REF#refs/heads/}
+          else
+            exit 1
+          fi
+
+          VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
+          FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-linux8.tar.gz"
+          echo SOURCE_TAG=$SOURCE_TAG
+          echo FILENAME=$FILENAME
+          echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
+          echo FILENAME=$FILENAME >> $GITHUB_ENV
+          pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+
+      - name: rename compiled utility
+        run: |
+          echo FILENAME=${{ env.FILENAME }}
+          tar -C dist -czvf ${{ env.FILENAME }} msksidekick
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux8build
+          path: ${{ env.FILENAME }}
 
 
    ubuntu-latest:
@@ -262,8 +205,7 @@ jobs:
           id -a
           echo SOURCE_TAG=$SOURCE_TAG
           VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-          #FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-ubuntu18.tar.gz"
-          FILENAME="msksidekick-2.0.8.5-ubuntu18.tar.gz"
+          FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-ubuntu18.tar.gz"
           echo SOURCE_TAG=$SOURCE_TAG
           echo FILENAME=$FILENAME
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
@@ -288,116 +230,116 @@ jobs:
            name: ubuntu18build
            path: ${{ env.FILENAME }}
 
-#   win2019:
-#     runs-on: windows-latest
-#     steps:
-#       - uses: actions/checkout@v2
-#       - name: checkout msksidekick code
-#         uses: actions/checkout@master
-#
-#       - name: Install dependencies
-#         run: |
-#           pip install --upgrade pip
-#           pip install -r requirements.txt
-#           pip install --upgrade setuptools
-#           pip install --upgrade pyInstaller
-#           pip install --upgrade requests
-#           pip install --upgrade termcolor
-#
-#       - name: Get the version
-#         id: get_version
-#         run: |
-#           if (${env:GITHUB_REF} -match "tags") {
-#             $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/tags\/', ''
-#           } elseif (${env:GITHUB_REF} -match "heads") {
-#             $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/heads\/', ''
-#           } else {
-#             exit 1
-#           }
-#           $VERSION_TAG=((((cat msksidekick.py|Select-String -Pattern "VERSION = ") -split ' = ')[1]) -replace '"')
-#           $FILENAME="msksidekick-" + $VERSION_TAG + "-win64.zip"
-#           echo "SOURCE_TAG=$SOURCE_TAG" >> ${env:GITHUB_ENV}
-#           echo "FILENAME=$FILENAME" >> ${env:GITHUB_ENV}
-#         shell: powershell
-#
-#       - name: Install OpenSSL
-#         run: |
-#           choco install openssl --no-progress
-#           echo "INCLUDE=C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%" >> ${env:GITHUB_ENV}
-#           echo "LIB=C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%" >> ${env:GITHUB_ENV}
-#
-#       - name: Compile toolkit
-#         run: |
-#           pip uninstall jeepney -y
-#           pip install jeepney
-#           pyinstaller --onefile --clean msksidekick.py
-#
-#       - name: compress toolkit
-#         run: |
-#           $NAME = "d:\a\msksidekick\msksidekick\${env:FILENAME}"
-#           mkdir d:\a\msksidekick\msksidekick\msksidekick
-#           copy d:\a\msksidekick\msksidekick\dist\msksidekick.exe msksidekick\
-#           Compress-Archive -Path d:\a\msksidekick\msksidekick\dist\msksidekick.exe -DestinationPath d:\a\msksidekick\msksidekick\${env:FILENAME}
-#         shell: powershell
-#
-#       - name: Upload Windows
-#         uses: actions/upload-artifact@v1
-#         with:
-#           name: windowsbuild
-#           path: ${{ env.FILENAME }}
-#
-#   osx:
-#     runs-on: macos-latest
-#     steps:
-#     - name: checkout msksidekick latest code
-#       uses: actions/checkout@master
-#     - name: Set up Python 3.9
-#       uses: actions/setup-python@v2
-#       with:
-#         python-version: 3.9
-#     - name: setup python pkg
-#       run: |
-#         pip install --upgrade pip
-#         if [ -f requirements.txt ]; then cat requirements.txt|grep -v pyinstaller|grep -v  setuptools > requirements.txt.tmp; fi
-#         mv requirements.txt.tmp requirements.txt
-#
-#     - name: Install Dependencies
-#       run: |
-#         CELL=`brew --prefix perl`
-#         OPENLIB=`brew --prefix openssl`
-#         CDIR=`pwd`
-#         export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
-#         echo $LIBS
-#
-#         pip3 install --upgrade 'setuptools<45.0.0'
-#         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-#         pip install --upgrade requests
-#         pip install --upgrade termcolor
-#         pip3 install pyinstaller
-#
-#     - name: Get the version
-#       id: get_version
-#       run: |
-#         if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
-#           SOURCE_TAG=${GITHUB_REF#refs/tags/}
-#         elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
-#           SOURCE_TAG=${GITHUB_REF#refs/heads/}
-#         else
-#           exit 1
-#         fi
-#         VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
-#         FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-macos.tar.gz"
-#         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
-#         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
-#         pip uninstall jeepney -y
-#         pip install jeepney
-#         pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
-#
-#     - name: rename toolkit
-#       run: |
-#         tar -C dist -czvf ${{ env.FILENAME }} msksidekick
-#     - name: Upload OSX
-#       uses: actions/upload-artifact@v1
-#       with:
-#         name: osxbuild
-#         path: ${{ env.FILENAME }}
+   win2019:
+     runs-on: windows-latest
+     steps:
+       - uses: actions/checkout@v2
+       - name: checkout msksidekick code
+         uses: actions/checkout@master
+
+       - name: Install dependencies
+         run: |
+           pip install --upgrade pip
+           pip install -r requirements.txt
+           pip install --upgrade setuptools
+           pip install --upgrade pyInstaller
+           pip install --upgrade requests
+           pip install --upgrade termcolor
+
+       - name: Get the version
+         id: get_version
+         run: |
+           if (${env:GITHUB_REF} -match "tags") {
+             $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/tags\/', ''
+           } elseif (${env:GITHUB_REF} -match "heads") {
+             $SOURCE_TAG = ${env:GITHUB_REF} -replace 'refs\/heads\/', ''
+           } else {
+             exit 1
+           }
+           $VERSION_TAG=((((cat msksidekick.py|Select-String -Pattern "VERSION = ") -split ' = ')[1]) -replace '"')
+           $FILENAME="msksidekick-" + $VERSION_TAG + "-win64.zip"
+           echo "SOURCE_TAG=$SOURCE_TAG" >> ${env:GITHUB_ENV}
+           echo "FILENAME=$FILENAME" >> ${env:GITHUB_ENV}
+         shell: powershell
+
+       - name: Install OpenSSL
+         run: |
+           choco install openssl --no-progress
+           echo "INCLUDE=C:\\Program Files\\OpenSSL-Win64\\include;%INCLUDE%" >> ${env:GITHUB_ENV}
+           echo "LIB=C:\\Program Files\\OpenSSL-Win64\\lib;%LIB%" >> ${env:GITHUB_ENV}
+
+       - name: Compile toolkit
+         run: |
+           pip uninstall jeepney -y
+           pip install jeepney
+           pyinstaller --onefile --clean msksidekick.py
+
+       - name: compress toolkit
+         run: |
+           $NAME = "d:\a\msksidekick\msksidekick\${env:FILENAME}"
+           mkdir d:\a\msksidekick\msksidekick\msksidekick
+           copy d:\a\msksidekick\msksidekick\dist\msksidekick.exe msksidekick\
+           Compress-Archive -Path d:\a\msksidekick\msksidekick\dist\msksidekick.exe -DestinationPath d:\a\msksidekick\msksidekick\${env:FILENAME}
+         shell: powershell
+
+       - name: Upload Windows
+         uses: actions/upload-artifact@v1
+         with:
+           name: windowsbuild
+           path: ${{ env.FILENAME }}
+
+   osx:
+     runs-on: macos-latest
+     steps:
+     - name: checkout msksidekick latest code
+       uses: actions/checkout@master
+     - name: Set up Python 3.9
+       uses: actions/setup-python@v2
+       with:
+         python-version: 3.9
+     - name: setup python pkg
+       run: |
+         pip install --upgrade pip
+         if [ -f requirements.txt ]; then cat requirements.txt|grep -v pyinstaller|grep -v  setuptools > requirements.txt.tmp; fi
+         mv requirements.txt.tmp requirements.txt
+
+     - name: Install Dependencies
+       run: |
+         CELL=`brew --prefix perl`
+         OPENLIB=`brew --prefix openssl`
+         CDIR=`pwd`
+         export LIBS="-l ${OPENLIB}/lib/libssl.dylib -l ${OPENLIB}/lib/libcrypto.dylib"
+         echo $LIBS
+
+         pip3 install --upgrade 'setuptools<45.0.0'
+         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+         pip install --upgrade requests
+         pip install --upgrade termcolor
+         pip3 install pyinstaller
+
+     - name: Get the version
+       id: get_version
+       run: |
+         if (echo ${GITHUB_REF} | grep "/tags/" > /dev/null); then
+           SOURCE_TAG=${GITHUB_REF#refs/tags/}
+         elif (echo ${GITHUB_REF} | grep "/heads/" > /dev/null); then
+           SOURCE_TAG=${GITHUB_REF#refs/heads/}
+         else
+           exit 1
+         fi
+         VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|sed 's/"//g')
+         FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-macos.tar.gz"
+         echo "SOURCE_TAG=$SOURCE_TAG" >> $GITHUB_ENV
+         echo "FILENAME=$FILENAME" >> $GITHUB_ENV
+         pip uninstall jeepney -y
+         pip install jeepney
+         pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
+
+     - name: rename toolkit
+       run: |
+         tar -C dist -czvf ${{ env.FILENAME }} msksidekick
+     - name: Upload OSX
+       uses: actions/upload-artifact@v1
+       with:
+         name: osxbuild
+         path: ${{ env.FILENAME }}
