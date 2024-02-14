@@ -166,3 +166,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 - BugFix  : obfuscate passwords when exporting masking users Github Issue #27
 - Feature : Add compiled binary for CentOS8 platform
 - Feature : Added feature to offline backup single environment
+
+## [2.0.8.5] - 2024-02-03
+- BugFix  : Improved messaging if the backup of environment fails.
