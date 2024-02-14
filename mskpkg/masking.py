@@ -104,6 +104,19 @@ class masking:
             "VIN_NO",
             "WEB",
             "ZIP",
+            "AGE",
+            "BANK_ACCOUNT_NO",
+            "COUNTRY",
+            "FULL_NAME",
+            "HIPAA_DATE",
+            "IBAN",
+            "PASSWORD",
+            "PAYMENT_AMOUNT",
+            "UNION_MEMBERSHIP_NO",
+            "USER_ID",
+            "US_PASSPORT",
+            "USPS_STATE_CODE",
+            "US_STATE",
         ]
         self.systemalgorithmlist = [
             "AccNoLookup",
@@ -174,7 +187,159 @@ class masking:
             "WEB_URLS_SL",
             "ZIP+4",
         ]
-
+        self.systemclassifierlist = [
+            "Account Number - Path",
+            "Account Number - Type",
+            "Address Line 1 - Path",
+            "Address Line 1 - Type",
+            "Address Line 1 - Regex",
+            "Address Line 2 - Path",
+            "Address Line 2 - Type",
+            "Address Line 2 - Regex",
+            "Age - Path",
+            "Age - Regex",
+            "Age - Type",
+            "Bank Account Number - Path",
+            "Bank Account Number - Regex",
+            "Bank Account Number - Type",
+            "Beneficiary Number - Path",
+            "Beneficiary Number - Type",
+            "Biometric - Path",
+            "Biometric - Type",
+            "Blood Type - List",
+            "Blood Type - Path",
+            "Blood Type - Type",
+            "Certificate Number - Path",
+            "Certificate Number - Type",
+            "City - List",
+            "City - Path",
+            "City - Type",
+            "Company Name - List",
+            "Company Name - Path",
+            "Company Name - Type",
+            "Country - Path",
+            "Country - Type",
+            "Country - List",
+            "County - Path",
+            "County - Type",
+            "Credit Card Number - Path",
+            "Credit Card Number - Regex",
+            "Credit Card Number - Type",
+            "Customer Number - Path",
+            "Customer Number - Type",
+            "Date of Birth - Path",
+            "Date of Birth - Type",
+            "Department - List",
+            "Department - Path",
+            "Department - Type",
+            "Drivers License - Path",
+            "Drivers License - Type",
+            "Drivers License - Regex",
+            "Email Address - Path",
+            "Email Address - Regex",
+            "Email Address - Type",
+            "Ethnicity - List",
+            "Ethnicity - Path",
+            "Ethnicity - Type",
+            "First Name - List",
+            "First Name - Path",
+            "First Name - Type",
+            "Full Name - Path",
+            "Full Name - Type",
+            "Full Name - List",
+            "Gender - Path",
+            "Gender - Type",
+            "Gender - List",
+            "HIPAA Date - Path",
+            "HIPAA Date - Type",
+            "House Number - Path",
+            "House Number - Type",
+            "IBAN - Path",
+            "IBAN - Regex",
+            "IBAN - Type",
+            "IP Address - Path",
+            "IP Address - Type",
+            "IP Address - Regex",
+            "Job Title - List",
+            "Job Title - Path",
+            "Job Title - Type",
+            "Language - List",
+            "Language - Path",
+            "Language - Type",
+            "Last Name - List",
+            "Last Name - Path",
+            "Last Name - Type",
+            "License Plate - Path",
+            "License Plate - Type",
+            "Location Coordinates - Path",
+            "Location Coordinates - Regex",
+            "Location Coordinates - Type",
+            "Marital Status - List",
+            "Marital Status - Path",
+            "Marital Status - Type",
+            "Medical Codes - Path",
+            "Medical Codes - Regex",
+            "Medical Codes - Type",
+            "Medical Drug - List",
+            "Medical Drug - Path",
+            "Medical Drug - Type",
+            "PO Box - Path",
+            "PO Box - Type",
+            "Password - Path",
+            "Password - Type",
+            "Payment Amount - Path",
+            "Payment Amount - Regex",
+            "Payment Amount - Type",
+            "Postcode - Path",
+            "Postcode - Regex",
+            "Postcode - Type",
+            "Precinct - Path",
+            "Precinct - Type",
+            "Record Number - Path",
+            "Record Number - Type",
+            "Routing Number - Path",
+            "Routing Number - Regex",
+            "Routing Number - Type",
+            "School Name - Path",
+            "School Name - Type",
+            "Security Code - Path",
+            "Security Code - Type",
+            "Serial Number - Path",
+            "Serial Number - Type",
+            "Sexual Orientation - Path",
+            "Sexual Orientation - Type",
+            "Sexual Orientation - List",
+            "Signature - Path",
+            "Signature - Type",
+            "Social Security Number - Path",
+            "Social Security Number - Regex",
+            "Social Security Number - Type",
+            "Swift Code - Path",
+            "Swift Code - Regex",
+            "Swift Code - Type",
+            "Tax ID - Path",
+            "Tax ID - Type",
+            "Telephone Number - Path",
+            "Telephone Number - Regex",
+            "Telephone Number - Type",
+            "Union Membership Number - Path",
+            "Union Membership Number - Type",
+            "US Passport - Path",
+            "US Passport - Regex",
+            "US Passport - Type",
+            "US State - Path",
+            "US State - Type",
+            "US State - List",
+            "USPS State Code - Path",
+            "USPS State Code - Type",
+            "USPS State Code - List",
+            "Vehicle Identification Number - Path",
+            "Vehicle Identification Number - Type",
+            "Web URL - Path",
+            "Web URL - Type",
+            "User ID - Path",
+            "User ID - Type"
+        ]
         # if not os.path.exists(self.enginelistfile):
         #    with open(self.enginelistfile, mode='a'): pass
         # if not os.path.exists(self.joblistfile):
@@ -904,8 +1069,8 @@ class masking:
                 data = outputstring
             return data
         else:
-            print(" {}".format(outputstring))
             print_debug(outputstring)
+            print("{}".format(outputstring))
             if "errorMessage" in outputstring:
                 print(outputstring, file=sys.stderr)
             return None
@@ -2271,6 +2436,14 @@ class masking:
 
 
     def sync_globalobj(self):
+        src_engine_name = self.srcmskengname
+        tgt_engine_name = self.tgtmskengname
+        globalobjsync = True
+        srcapikey = self.validate_msk_eng_connection(src_engine_name)
+        tgtapikey = self.validate_msk_eng_connection(tgt_engine_name)
+        self.srcapikey = srcapikey
+        self.tgtapikey = tgtapikey
+
         self.sync_syncable_objects("GLOBAL_OBJECT")
         self.sync_syncable_objects("FILE_FORMAT")
         self.sync_syncable_objects("MOUNT_INFORMATION")
@@ -3297,7 +3470,7 @@ class masking:
                 userId = user_rec["userId"]
                 userName = user_rec["userName"]
                 userNameNoSpace = userName.replace(" ", "_")
-                user_rec["password"] = "Delphix-123"
+                user_rec["password"] = "xxxxxxxxx"
                 user_bkp_dict = {
                     "userId": userId,
                     "userName": userName,
@@ -3415,7 +3588,7 @@ class masking:
                 "ERROR: Error connecting source engine {}".format(src_engine_name)
             )
 
-    def bkp_environments(self, bkp_main_dir, srcapikey=None):
+    def bkp_environments(self, bkp_main_dir, srcapikey=None, src_env_name_param=None):
         env_mapping = {}
         src_engine_name = self.srcmskengname
         if srcapikey is None:
@@ -3424,9 +3597,15 @@ class masking:
             print_debug("srcapikey={}".format(srcapikey))
 
         if srcapikey is not None:
-            syncobjapicall = (
-                "syncable-objects?page_number=1&page_size=999&object_type=ENVIRONMENT"
-            )
+            if src_env_name_param is not None:
+                src_env_id = self.find_env_id(src_env_name_param, src_engine_name, srcapikey)
+                syncobjapicall = "syncable-objects/environments/{}?page_number=1&page_size=999".format(
+                    src_env_id
+                )
+            else:
+                syncobjapicall = (
+                    "syncable-objects?page_number=1&page_size=999&object_type=ENVIRONMENT"
+                )
             syncobjapicallresponse = self.get_api_response(
                 src_engine_name, self.srcapikey, syncobjapicall
             )
@@ -3487,20 +3666,27 @@ class masking:
                     srcapiresponse = self.post_api_response1(
                         src_engine_name, self.srcapikey, srcapicall, envdef, port=80
                     )
-                    env_bkp_dict = {
-                        "src_app_id": src_app_id,
-                        "src_app_name": src_app_name,
-                        "src_env_id": src_env_id,
-                        "src_env_name": src_env_name,
-                        "src_env_purpose": src_env_purpose,
-                        "srcapiresponse": srcapiresponse,
-                    }
-                    env_bkp_file = "{}/environments/backup_env_{}.dat".format(
-                        bkp_main_dir, src_env_id
-                    )
-                    with open(env_bkp_file, "wb") as fh:
-                        pickle.dump(env_bkp_dict, fh)
-                    print("Created backup of environment {}".format(src_env_name))
+                    if srcapiresponse is not None:
+                        env_bkp_dict = {
+                            "src_app_id": src_app_id,
+                            "src_app_name": src_app_name,
+                            "src_env_id": src_env_id,
+                            "src_env_name": src_env_name,
+                            "src_env_purpose": src_env_purpose,
+                            "srcapiresponse": srcapiresponse,
+                        }
+                        env_bkp_file = "{}/environments/backup_env_{}.dat".format(
+                            bkp_main_dir, src_env_id
+                        )
+                        with open(env_bkp_file, "wb") as fh:
+                            pickle.dump(env_bkp_dict, fh)
+                        print("Created backup of environment {}".format(src_env_name))
+                    else:
+                        print("FAILED: backup of environment {}".format(src_env_name))
+                        if src_env_name_param is not None:
+                            raise Exception(
+                                "ERROR: Error backing up environment {}".format(src_env_name)
+                            )
         return env_mapping
 
 
@@ -3529,6 +3715,36 @@ class masking:
             print(" ")
 
             print("Created backup of masking engine at {}".format(bkp_main_dir))
+            print(" ")
+
+        else:
+            print("srcapikey={}".format(self.srcapikey))
+            raise Exception(
+                "ERROR: Error connecting source engine {}".format(src_engine_name)
+            )
+
+    def offline_backup_env(self):
+        env_mapping = {}
+        src_engine_name = self.srcmskengname
+        src_env_name = self.envname
+        srcapikey = self.get_auth_key(src_engine_name)
+        self.srcapikey = srcapikey
+        print_debug("srcapikey={}, self.srcapikey={}".format(srcapikey, self.srcapikey))
+        if self.srcapikey is not None:
+            bkp_main_dir = self.cr_backup_dirs()
+            print(" ")
+            self.bkp_globalobj(bkp_main_dir, self.srcapikey)
+            print(" ")
+            self.bkp_otf_job_mappings(bkp_main_dir, self.srcapikey)
+            print(" ")
+            env_mapping = self.bkp_environments(bkp_main_dir, self.srcapikey, src_env_name)
+            env_mapping_file = "{}/mappings/backup_env_mapping.dat".format(bkp_main_dir)
+            with open(env_mapping_file, "wb") as fh:
+                pickle.dump(env_mapping, fh)
+            print("Created mapping file for environment")
+            print(" ")
+
+            print("Created backup of environment at {}".format(bkp_main_dir))
             print(" ")
 
         else:
@@ -3990,6 +4206,7 @@ class masking:
                     userId = userobj_bkp_dict["userId"]
                     userName = userobj_bkp_dict["userName"]
                     srcapiresponse = userobj_bkp_dict["srcapiresponse"]
+                    srcapiresponse["password"] = "Delphix-123"
                     print_debug(" Is Admin:{}".format(srcapiresponse["isAdmin"]))
                     if not srcapiresponse["isAdmin"]:
                         print_debug(
@@ -4470,6 +4687,12 @@ class masking:
             print(" ")
             print(" Deleting roles")
             self.del_roles(src_engine_name, self.srcapikey)
+            print(" ")
+            print(" Deleting Profilesets")
+            self.del_profilesets(src_engine_name, self.srcapikey)
+            print(" ")
+            print(" Deleting Classifiers")
+            self.del_classifiers(src_engine_name, self.srcapikey)
             print(" ")
             print(" Deleting Domains")
             self.del_domains(src_engine_name, self.srcapikey)
@@ -5548,7 +5771,8 @@ class masking:
             src_role_id = roleobj["roleId"]
             src_role_name = roleobj["roleName"]
             print_debug("Role = {},{}".format(src_role_id, src_role_name))
-            if src_role_name != "All Privileges":
+            builtin_roles = ["All Privileges","DBA","Environment Owner","IT Security Analyst","Operator","SME"]
+            if src_role_name not in builtin_roles:
                 delapicall = "roles/{}".format(src_role_id)
                 delapiresponse = self.del_api_response(
                     src_engine_name, self.srcapikey, delapicall
@@ -5560,6 +5784,60 @@ class masking:
                     print(" Role {} deleted successfully.".format(src_role_name))
                     # print(" ")
 
+    def del_profilesets(self, src_engine_name, srcapikey):
+        if srcapikey is None:
+            self.get_auth_key(src_engine_name)
+        syncobjapicall = "profile-sets?page_number=1&page_size=999"
+        syncobjapicallresponse = self.get_api_response(
+            src_engine_name, self.srcapikey, syncobjapicall
+        )
+        for profilesetobj in syncobjapicallresponse["responseList"]:
+            if "createdBy" in profilesetobj.keys():
+                if profilesetobj["createdBy"] not in ["admin","system"]:
+                    src_profileset_name = profilesetobj["profileSetName"]
+                    print_debug("profileset = {}".format(src_profileset_name))
+                    print_debug("profilesetobj = {}".format(profilesetobj))
+
+                    src_profileset_id = profilesetobj["profileSetId"]
+                    delapicall = "profile-sets/{}".format(src_profileset_id)
+                    delapiresponse = self.del_api_response(
+                        src_engine_name, self.srcapikey, delapicall
+                    )
+                    if delapiresponse is None:
+                        print(" Unable to delete profileset {}.".format(src_profileset_name))
+                        i = 1
+                    else:
+                        print(
+                            " profileset {} deleted successfully.".format(src_profileset_name)
+                        )
+
+    def del_classifiers(self, src_engine_name, srcapikey):
+        if srcapikey is None:
+            self.get_auth_key(src_engine_name)
+        syncobjapicall = "classifiers?page_number=1&page_size=999"
+        syncobjapicallresponse = self.get_api_response(
+            src_engine_name, self.srcapikey, syncobjapicall
+        )
+        for classifierobj in syncobjapicallresponse["responseList"]:
+            if "createdBy" in classifierobj.keys():
+                if classifierobj["createdBy"] not in ["admin", "system"]:
+                    src_classifier_name = classifierobj["classifierName"]
+                    print_debug("Classifier = {}".format(src_classifier_name))
+                    print_debug("classifierobj = {}".format(classifierobj))
+                    if src_classifier_name not in self.systemclassifierlist:
+                        src_classifier_id = classifierobj["classifierId"]
+                        delapicall = "classifiers/{}".format(src_classifier_id)
+                        delapiresponse = self.del_api_response(
+                            src_engine_name, self.srcapikey, delapicall
+                        )
+                        if delapiresponse is None:
+                            print(" Unable to delete Classifier {}.".format(src_classifier_name))
+                            i = 1
+                        else:
+                            print(
+                                " Classifier {} deleted successfully.".format(src_classifier_name)
+                            )
+                        # print(" ")
     def del_domains(self, src_engine_name, srcapikey):
         if srcapikey is None:
             self.get_auth_key(src_engine_name)
@@ -5569,21 +5847,22 @@ class masking:
         )
         for domainobj in syncobjapicallresponse["responseList"]:
             if "createdBy" in domainobj.keys():
-                src_domain_name = domainobj["domainName"]
-                print_debug("Domain = {}".format(src_domain_name))
-                print_debug("domainobj = {}".format(domainobj))
-                if src_domain_name not in self.systemdomainlist:
-                    delapicall = "domains/{}".format(src_domain_name)
-                    delapiresponse = self.del_api_response(
-                        src_engine_name, self.srcapikey, delapicall
-                    )
-                    if delapiresponse is None:
-                        print(" Unable to delete Domain {}.".format(src_domain_name))
-                        i = 1
-                    else:
-                        print(
-                            " Domain {} deleted successfully.".format(src_domain_name)
+                if domainobj["createdBy"] not in ["admin", "system"]:
+                    src_domain_name = domainobj["domainName"]
+                    print_debug("Domain = {}".format(src_domain_name))
+                    print_debug("domainobj = {}".format(domainobj))
+                    if src_domain_name not in self.systemdomainlist:
+                        delapicall = "domains/{}".format(src_domain_name)
+                        delapiresponse = self.del_api_response(
+                            src_engine_name, self.srcapikey, delapicall
                         )
+                        if delapiresponse is None:
+                            print(" Unable to delete Domain {}.".format(src_domain_name))
+                            i = 1
+                        else:
+                            print(
+                                " Domain {} deleted successfully.".format(src_domain_name)
+                            )
                         # print(" ")
 
     def del_algorithms(self, src_engine_name, srcapikey):
@@ -5595,25 +5874,26 @@ class masking:
         )
         for algorithmobj in syncobjapicallresponse["responseList"]:
             if "createdBy" in algorithmobj.keys():
-                src_algorithm_name = algorithmobj["algorithmName"]
-                print_debug("Algorithm = {}".format(src_algorithm_name))
-                print_debug("algorithmobj = {}".format(algorithmobj))
-                if src_algorithm_name not in self.systemalgorithmlist:
-                    delapicall = "algorithms/{}".format(src_algorithm_name)
-                    delapiresponse = self.del_api_response(
-                        src_engine_name, self.srcapikey, delapicall
-                    )
-                    if delapiresponse is None:
-                        print(
-                            " Unable to delete Algorithm {}.".format(src_algorithm_name)
+                if algorithmobj["createdBy"] not in ["admin", "system"]:
+                    src_algorithm_name = algorithmobj["algorithmName"]
+                    print_debug("Algorithm = {}".format(src_algorithm_name))
+                    print_debug("algorithmobj = {}".format(algorithmobj))
+                    if src_algorithm_name not in self.systemalgorithmlist:
+                        delapicall = "algorithms/{}".format(src_algorithm_name)
+                        delapiresponse = self.del_api_response(
+                            src_engine_name, self.srcapikey, delapicall
                         )
-                        i = 1
-                    else:
-                        print(
-                            " Algorithm {} deleted successfully.".format(
-                                src_algorithm_name
+                        if delapiresponse is None:
+                            print(
+                                " Unable to delete Algorithm {}.".format(src_algorithm_name)
                             )
-                        )
+                            i = 1
+                        else:
+                            print(
+                                " Algorithm {} deleted successfully.".format(
+                                    src_algorithm_name
+                                )
+                            )
                         # print(" ")
 
     def find_conn_details(self, otf_job_mappings, job_name, env_name):
