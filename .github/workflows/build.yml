@@ -56,10 +56,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name:  Install Python 3.8 (pip is bundled with Python 3.8+)
+      - name:  Install python${PYTHON_VERSION}
         run: |
-          dnf install -y python38
-          alternatives --set python /usr/bin/python3.8
+          dnf install -y python${PYTHON_VERSION}
+          alternatives --set python /usr/bin/python${PYTHON_VERSION}
           python --version
 
       - name: Install dependencies
@@ -89,6 +89,11 @@ jobs:
           echo FILENAME=$FILENAME
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
           echo FILENAME=$FILENAME >> $GITHUB_ENV
+          python${PYTHON_VERSION} -V
+          env PYTHON_CONFIGURE_OPTS='--enable-optimizations --with-lto' PYTHON_CFLAGS='-march=native -mtune=native'
+          python${PYTHON_VERSION} -m pip install --upgrade pip
+          python${PYTHON_VERSION} -m pip install pyinstaller
+          python${PYTHON_VERSION} -m pip install -r requirements.txt
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
       - name: rename compiled utility
