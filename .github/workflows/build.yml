@@ -206,7 +206,7 @@ jobs:
           echo SOURCE_TAG=$SOURCE_TAG
           VERSION_TAG=$(cat ./msksidekick.py|grep "VERSION = "|awk -F' = ' '{ print $2 }'|tr -d '[:space:]')
           echo "VERSION_TAG=$VERSION_TAG"
-          FILENAME="msksidekick-${VERSION_TAG//[$'\t\r\n ']}-ubuntu18.tar.gz"
+          FILENAME="msksidekick-${VERSION_TAG}-ubuntu18.tar.gz"
           echo SOURCE_TAG=$SOURCE_TAG
           echo FILENAME=$FILENAME
           echo SOURCE_TAG=$SOURCE_TAG >> $GITHUB_ENV
