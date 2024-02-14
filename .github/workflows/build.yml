@@ -271,8 +271,9 @@ jobs:
           #update-alternatives --set python /usr/bin/python${PYTHON_VERSION}
           # python -V
           python${PYTHON_VERSION} -V
+          env PYTHON_CONFIGURE_OPTS='--enable-optimizations --with-lto' PYTHON_CFLAGS='-march=native -mtune=native'
+          python${PYTHON_VERSION} -m pip install --upgrade pip
           python${PYTHON_VERSION} -m pip install pyinstaller
-          env PYTHON_CONFIGURE_OPTS='--enable-optimizations --with-lto' PYTHON_CFLAGS='-march=native -mtune=native' pyenv install ${PYTHON_VERSION}
           pyinstaller --onefile --clean --hidden-import pkg_resources msksidekick.py
 
       - name: rename toolkit
