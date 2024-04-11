@@ -6,7 +6,7 @@ click==8.0.3
 colorama==0.4.6
 cx_Freeze==6.15.14
 docutils==0.16
-idna==2.10
+idna==3.7
 macholib==1.14
 psutil==5.8.0
 pyinstaller-hooks-contrib==2020.11
